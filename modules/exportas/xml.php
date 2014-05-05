@@ -3,9 +3,15 @@ $Module = $Params['Module'];
 $ParentNodeID = isset( $Params['ParentNodeID'] ) ? $Params['ParentNodeID'] : false;
 $ClassIdentifier = isset( $Params['ClassIdentifier'] ) ? $Params['ClassIdentifier'] : false;
 
+$exporterClass = 'XMLExporter';
+if ( eZINI::instance( 'exportas.ini' )->hasVariable( 'Settings', 'XMLExportClass' ) )
+{
+    $exporterClass = eZINI::instance( 'exportas.ini' )->variable( 'Settings', 'XMLExportClass' );   
+}
+
 try
 {    
-    $XMLExporter = new XMLExporter( $ParentNodeID, $ClassIdentifier );        
+    $XMLExporter = new $exporterClass( $ParentNodeID, $ClassIdentifier );        
 }
 catch ( InvalidArgumentException $e )
 {
