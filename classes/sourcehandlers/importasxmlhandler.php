@@ -1,5 +1,9 @@
 <?php
 
+/**
+ *
+ * php extension/sqliimport/bin/php/sqlidoimport.php -s<siteaccess> --source-handlers="importasxml" --options="importasxml::file=<full_path_to_file>[,var_dir=<full_path_to_var_dir>]"
+ */
 
 class ImportAsXMLImportHandler extends SQLIImportAbstractHandler implements ISQLIImportHandler
 {
