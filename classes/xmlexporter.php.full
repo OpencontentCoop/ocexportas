@@ -1,6 +1,6 @@
 <?php
 
-class XMLFullExporter extends AbstarctExporter
+class XMLExporter extends AbstarctExporter
 {
     private $xmlWriter;
     private $tagStyle;
@@ -45,10 +45,7 @@ class XMLFullExporter extends AbstarctExporter
     {
        $array = array(
             'node_id' => $node->attribute( 'node_id' ),
-            'node_remote_id' => $node->attribute( 'remote_id' ),
             'parent_node_id' => $node->attribute( 'parent_node_id' ),
-            'parent_object_remote_id' => $node->attribute( 'parent' )->attribute( 'object' )->attribute( 'remote_id' ),
-            'parent_node_remote_id' => $node->attribute( 'parent' )->attribute( 'remote_id' ),
             'main_node_id' => $node->attribute( 'main_node_id' ),
             'path_string' => $node->attribute( 'path_string' ),
             'path_identification_string' => $node->attribute( 'path_identification_string' ),
@@ -172,7 +169,7 @@ class XMLFullExporter extends AbstarctExporter
                                     {
                                         $this->xmlWriter->startElement( $related->attribute( 'class_identifier' ) );
                                     }                                      
-                                    $this->writeObjectProperties( $related );
+                                    $this->writeObjectProperties( $object );
                                     $this->xmlWriter->endElement();
                                 }
                                 else
@@ -191,7 +188,7 @@ class XMLFullExporter extends AbstarctExporter
                 {
                     if ( $attribute->hasContent() )
                     {
-                        $this->xmlWriter->writeCData( $attribute->content()->attribute('xml_data') );
+                        $this->xmlWriter->writeCData( $attribute->content()->attribute('output')->outputText() );
                     }                        
                 } break;
 
@@ -204,14 +201,13 @@ class XMLFullExporter extends AbstarctExporter
                     }                        
                 } break;
                 
-                case 'ezmedia':
                 case 'ezbinaryfile':
                 {
                     if ( $attribute->hasContent() )
                     {
                         $attributeContent = $attribute->content();
-                        $filePath = $attributeContent->storedFileInfo();
-                        $this->xmlWriter->writeAttribute( 'filepath', $filePath['filepath'] );
+                        $filePath = "{eZSys::hostname()}/content/download/{$attribute->attribute('contentobject_id')}/{$attribute->attribute('id')}/{$attributeContent->attribute( 'original_filename' )}";
+                        $this->xmlWriter->writeAttribute( 'filepath', $filePath );
                         $this->xmlWriter->writeAttribute( 'filesize', $attributeContent->attribute( 'filesize' ) );
                         $this->xmlWriter->writeAttribute( 'mime_type_category', $attributeContent->attribute( 'mime_type_category' ) );
                         $this->xmlWriter->writeAttribute( 'mime_type_part', $attributeContent->attribute( 'mime_type_part' ) );

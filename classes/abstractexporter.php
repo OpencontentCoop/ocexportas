@@ -110,9 +110,7 @@ abstract class AbstarctExporter
                 $params = $this->ini->group( 'DefaultFetchParamsForClassIdentifier_' . $this->mainClass->attribute( 'identifier' ) ) + $params;
             }
             
-            $params = array( //'Depth' => 1,
-                             //'DepthOperator' => 'eq',
-                             'ClassFilterType' => 'include',
+            $params = array( 'ClassFilterType' => 'include',
                              'ClassFilterArray' => array( $this->mainClass->attribute( 'identifier' ) ) ) + $params;
         }
         $this->fetchParameters = $override + $params;
