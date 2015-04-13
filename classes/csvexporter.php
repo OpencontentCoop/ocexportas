@@ -76,7 +76,17 @@ class CSVExporter extends AbstarctExporter
                             $attributeStringContent = eZSys::hostname() . '/' . $filePath;
                         }
                     } break;
-                
+
+                    // Modifica Raffaele 09/04/2015 Altrimenti l'output è il timestamp
+                    case 'ezdate':
+                    {
+                        $attributeStringContent = '';
+                        if ( $attribute->hasContent() )
+                        {
+                            $attributeStringContent = strftime('%d/%m/%Y', $attribute->toString());
+                        }
+                    } break;
+
                     default:
                         $attributeStringContent = '';
                         if ( $attribute->hasContent() )
@@ -104,8 +114,11 @@ class CSVExporter extends AbstarctExporter
 
         $count = $this->fetchCount();
         $length = 50;
-        $this->setFetchParameters( array( 'Offset' => 0 , 'Limit' => $length ) );
-        
+        // Modifica Raffaele 09/04/2015 Sovrascrive l'attribute filter
+        //$this->setFetchParameters( array( 'Offset' => 0 , 'Limit' => $length ) );
+        $this->fetchParameters['Offset'] = 0;
+        $this->fetchParameters['Limit'] = $length;
+
         $output = fopen('php://output', 'w');
         $runOnce = false;
         do
