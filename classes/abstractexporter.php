@@ -38,9 +38,8 @@ abstract class AbstarctExporter
     abstract function handleDownload();
 
     public function setUserParameter( array $parameters = null )
-    {
-        $this->userParameters = $parameters;
-        foreach( $this->userParameters as $key => $value )
+    {         
+        foreach( $parameters as $key => $value )
         {
             switch( $key )
             {
@@ -52,9 +51,16 @@ abstract class AbstarctExporter
                     $this->fetchParameters['AttributeFilter'] = array(
                         array( 'published', 'between', array( $start, $end ) )
                     );
+                    $this->userParameters[$key] = intval( $value );
                 } break;
             }
-
+        }
+        if ( !empty( $this->userParameters ) )
+        {
+            foreach( $this->userParameters  as $key => $value )
+            {
+                $this->filename .= '_' . $key . '_' . $value;
+            }
         }
     }
     

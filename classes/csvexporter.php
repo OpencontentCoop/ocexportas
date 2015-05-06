@@ -79,8 +79,8 @@ class CSVExporter extends AbstarctExporter
                             $attributeStringContent = eZSys::hostname() . '/' . $filePath;
                         }
                     } break;
-
-                    // Modifica Raffaele 09/04/2015 Altrimenti l'output è il timestamp
+                    
+                    case 'ezdatetime':
                     case 'ezdate':
                     {
                         $attributeStringContent = '';
