@@ -3,18 +3,60 @@
 abstract class AbstarctExporter
 {
     public $fetchParameters = array();
+    public $userParameters = array();
     public $options = array();
+
+    /**
+     * @var eZINI
+     */
     public $ini;
+
+    /**
+     * @var string
+     */
     public $filename;
     
     protected $functionName;
+
+    /**
+     * @var eZContentObjectTreeNode
+     */
     protected $mainNode;
+
+    /**
+     * @var eZContentObject
+     */
     protected $mainObject;
+
+    /**
+     * @var eZContentClass
+     */
     protected $mainClass;
     
-    abstract function transformNode( $node );
+    abstract function transformNode( eZContentObjectTreeNode $node );
     
     abstract function handleDownload();
+
+    public function setUserParameter( array $parameters = null )
+    {
+        $this->userParameters = $parameters;
+        foreach( $this->userParameters as $key => $value )
+        {
+            switch( $key )
+            {
+                case 'year':
+                case 'anno':
+                {
+                    $start = mktime( 0, 0, 0, 1, 1, intval( $value ) );
+                    $end = mktime( 23, 59, 59, 12, 31, intval( $value ) );
+                    $this->fetchParameters['AttributeFilter'] = array(
+                        array( 'published', 'between', array( $start, $end ) )
+                    );
+                } break;
+            }
+
+        }
+    }
     
     public function __construct( $parentNodeID, $classIdentifier )
     {        
@@ -99,7 +141,7 @@ abstract class AbstarctExporter
         $this->mainObject = $parentNode->attribute( 'object' );        
     }
     
-    public function setFetchParameters( $override = array() )
+    private function setFetchParameters( $override = array() )
     {
         $params = $this->ini->hasGroup( 'DefaultFetchParams' ) ? $this->ini->group( 'DefaultFetchParams' ) : array();
         

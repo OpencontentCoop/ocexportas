@@ -9,14 +9,17 @@ class CSVExporter extends AbstarctExporter
         $this->functionName = 'csv';        
         parent::__construct( $parentNodeID, $classIdentifier );
     }
-    
-    function transformNode( $node )
-    {                
+
+    function transformNode( eZContentObjectTreeNode $node )
+    {
+        $values = array();
         if ( $node instanceof eZContentObjectTreeNode )
         {
+            /** @var eZContentObject $object */
             $object = $node->attribute( 'object' );
-            $values = array();
-            foreach( $object->attribute( 'contentobject_attributes' ) as $attribute )
+            /** @var eZContentObjectAttribute[] $attributes */
+            $attributes = $object->attribute( 'contentobject_attributes' );
+            foreach( $attributes as $attribute )
             {
                 $attributeIdentifier = $attribute->attribute( 'contentclass_attribute_identifier' );
                 $datatypeString = $attribute->attribute( 'data_type_string' );
@@ -114,8 +117,7 @@ class CSVExporter extends AbstarctExporter
 
         $count = $this->fetchCount();
         $length = 50;
-        // Modifica Raffaele 09/04/2015 Sovrascrive l'attribute filter
-        //$this->setFetchParameters( array( 'Offset' => 0 , 'Limit' => $length ) );
+
         $this->fetchParameters['Offset'] = 0;
         $this->fetchParameters['Limit'] = $length;
 

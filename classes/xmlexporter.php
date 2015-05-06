@@ -243,7 +243,7 @@ class XMLExporter extends AbstarctExporter
         $this->xmlWriter->endElement();
     }
     
-    function transformNode( $node )
+    function transformNode( eZContentObjectTreeNode $node )
     {                
         if ( $node instanceof eZContentObjectTreeNode )
         {            
@@ -268,8 +268,9 @@ class XMLExporter extends AbstarctExporter
         
         if ( $count > 0 )
         {
-            $length = 50;        
-            $this->setFetchParameters( array( 'Offset' => 0 , 'Limit' => $length ) );
+            $length = 50;
+            $this->fetchParameters['Offset'] = 0;
+            $this->fetchParameters['Limit'] = $length;
             
             $this->xmlWriter = new XMLWriter();                    
             $this->xmlWriter->openURI( 'php://output' );         
