@@ -89,6 +89,17 @@ class CSVExporter extends AbstarctExporter
                             $attributeStringContent = strftime('%d/%m/%Y', $attribute->toString());
                         }
                     } break;
+                    
+                    case 'ezuser':
+                    {
+                        $attributeStringContent = '';
+                        if ( $attribute->hasContent() )
+                        {
+                            $login = $attribute->content()->attribute( 'login' );
+                            $email = $attribute->content()->attribute( 'email' );
+                            $attributeStringContent = $login != $email ? $login . '|' . $email : $email;
+                        }
+                    } break;
 
                     default:
                         $attributeStringContent = '';
