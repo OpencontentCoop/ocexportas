@@ -5,39 +5,57 @@ $ViewList = array();
 $ViewList['csv'] = array(
     'functions' => array( 'csv' ),
     'script' => 'csv.php',
-	'params' => array( 'ClassIdentifier', 'ParentNodeID' ) );
+    'params' => array( 'ClassIdentifier', 'ParentNodeID' )
+);
 
 $ViewList['xml'] = array(
     'functions' => array( 'xml' ),
     'script' => 'xml.php',
-	'params' => array( 'ClassIdentifier', 'ParentNodeID' ) );
-    
+    'params' => array( 'ClassIdentifier', 'ParentNodeID' )
+);
+
+$ViewList['custom'] = array(
+    'functions' => array( 'custom' ),
+    'script' => 'custom.php',
+    'params' => array( 'ExportHandlerIdentifier', 'ClassIdentifier', 'ParentNodeID' )
+);
+
+
 $ClassID = array(
-    'name'=> 'Class',
-    'values'=> array(),
+    'name' => 'Class',
+    'values' => array(),
     'class' => 'eZContentClass',
     'function' => 'fetchList',
     'parameter' => array( 0, false, false, array( 'name' => 'asc' ) )
-    );
+);
 
 $SectionID = array(
-    'name'=> 'Section',
-    'values'=> array(),
+    'name' => 'Section',
+    'values' => array(),
     'class' => 'eZSection',
     'function' => 'fetchList',
     'parameter' => array( false )
-    );
+);
 
 $Node = array(
-    'name'=> 'Node',
-    'values'=> array()
-    );
-    
-$FunctionList['csv'] = array( 'Class' => $ClassID,
-                                   'Section' => $SectionID,                                   
-                                   'Node' => $Node );
+    'name' => 'Node',
+    'values' => array()
+);
 
-$FunctionList['xml'] = array( 'Class' => $ClassID,
-                                   'Section' => $SectionID,                                   
-                                   'Node' => $Node );
-?>
+$FunctionList['csv'] = array(
+    'Class' => $ClassID,
+    'Section' => $SectionID,
+    'Node' => $Node
+);
+
+$FunctionList['xml'] = array(
+    'Class' => $ClassID,
+    'Section' => $SectionID,
+    'Node' => $Node
+);
+
+$FunctionList['custom'] = array(
+    'Class' => $ClassID,
+    'Section' => $SectionID,
+    'Node' => $Node
+);
