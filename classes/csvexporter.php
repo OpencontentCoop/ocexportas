@@ -2,7 +2,7 @@
 
 class CSVExporter extends AbstarctExporter
 {
-    private $CSVheaders = array();    
+    protected $CSVheaders = array();
     
     public function __construct( $parentNodeID, $classIdentifier )
     {

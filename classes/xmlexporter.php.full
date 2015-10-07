@@ -2,10 +2,10 @@
 
 class XMLExporter extends AbstarctExporter
 {
-    private $xmlWriter;
-    private $tagStyle;
+    protected $xmlWriter;
+    protected $tagStyle;
     
-    private static $recursion = 0;
+    protected static $recursion = 0;
     
     const USE_GENERIC_TAG = 1;
     const USE_IDENTIFIER_TAG = 2;

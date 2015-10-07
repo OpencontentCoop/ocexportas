@@ -2,10 +2,10 @@
 
 class XMLExporter extends AbstarctExporter
 {
-    private $xmlWriter;
-    private $tagStyle;
-    
-    private static $recursion = 0;
+    protected $xmlWriter;
+    protected $tagStyle;
+
+    protected static $recursion = 0;
     
     const USE_GENERIC_TAG = 1;
     const USE_IDENTIFIER_TAG = 2;
@@ -21,8 +21,8 @@ class XMLExporter extends AbstarctExporter
             $this->tagStyle = self::USE_IDENTIFIER_TAG;
         }
     }
-    
-    private function writeObjectProperties( $object )
+
+    protected function writeObjectProperties( $object )
     {
         $array = array(
             'name' => $object->attribute( 'name' ),
@@ -37,8 +37,8 @@ class XMLExporter extends AbstarctExporter
             $this->xmlWriter->writeAttribute( $key, $value );
         }
     }
-    
-    private function writeNodeProperties( $node )
+
+    protected function writeNodeProperties( $node )
     {
        $array = array(
             'node_id' => $node->attribute( 'node_id' ),
@@ -49,8 +49,8 @@ class XMLExporter extends AbstarctExporter
             $this->xmlWriter->writeAttribute( $key, $value );
         }
     }
-    
-    private static function decodeStatus( $value )
+
+    protected static function decodeStatus( $value )
     {
         switch ( $value )
         {
