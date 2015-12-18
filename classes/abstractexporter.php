@@ -147,7 +147,7 @@ abstract class AbstarctExporter
         $this->mainObject = $parentNode->attribute( 'object' );        
     }
     
-    private function setFetchParameters( $override = array() )
+    public function setFetchParameters( $override = array() )
     {
         $params = $this->ini->hasGroup( 'DefaultFetchParams' ) ? $this->ini->group( 'DefaultFetchParams' ) : array();
         
