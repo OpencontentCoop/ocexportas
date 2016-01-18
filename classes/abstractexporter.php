@@ -65,7 +65,8 @@ abstract class AbstarctExporter
     }
     
     public function __construct( $parentNodeID, $classIdentifier )
-    {        
+    {
+
         if ( !$parentNodeID && !$classIdentifier )
         {
             throw new InvalidArgumentException( "Arguments not found" ); 
@@ -165,7 +166,7 @@ abstract class AbstarctExporter
     }
     
     public function fetch()
-    {                        
+    {
         return $this->mainNode->subTree( $this->fetchParameters );                
     }
     

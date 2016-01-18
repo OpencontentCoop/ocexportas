@@ -26,6 +26,13 @@ $ViewList['avpc'] = array(
     'params' => array( 'ClassIdentifier', 'ParentNodeID' )
 );
 
+$ViewList['csvsicopat'] = array(
+    'functions' => array( 'csvsicopat' ),
+    'script' => 'csvsicopat.php',
+    'params' => array( 'ClassIdentifier', 'ParentNodeID' )
+);
+
+
 $ClassID = array(
     'name' => 'Class',
     'values' => array(),
@@ -66,6 +73,12 @@ $FunctionList['custom'] = array(
 );
 
 $FunctionList['avpc'] = array(
+    'Class' => $ClassID,
+    'Section' => $SectionID,
+    'Node' => $Node
+);
+
+$FunctionList['csvsicopat'] = array(
     'Class' => $ClassID,
     'Section' => $SectionID,
     'Node' => $Node

@@ -5,6 +5,7 @@ class AVCPExporter extends AbstarctExporter
     protected $xmlWriter;
     protected $tagStyle;
     protected $parentNodeID;
+    protected $siteUrl;
 
     protected static $recursion = 0;
     
@@ -23,6 +24,10 @@ class AVCPExporter extends AbstarctExporter
         }
 
         $this->parentNodeID = $parentNodeID;
+
+        $siteINI = eZINI::instance();
+        $this->siteUrl = rtrim( $siteINI->variable( 'SiteSettings', 'SiteURL' ), '/' );
+
     }
 
     protected function writeMetadata(){
@@ -58,7 +63,6 @@ class AVCPExporter extends AbstarctExporter
             //
             $this->xmlWriter->startElement( 'abstract' );
             if($data_map['abstract']){
-
                 //FIXME: trattare come XML
                 $this->xmlWriter->writeCData($data_map['abstract']->content());
             }
@@ -67,9 +71,7 @@ class AVCPExporter extends AbstarctExporter
             //nillable="false"
             $this->xmlWriter->startElement( 'dataPubbicazioneDataset' );
             if($data_map['data_pubbicazione_dataset']){
-
-                //FIXME: la data deve essere formato yyyy-MM-dd
-                $this->xmlWriter->writeCData($data_map['data_pubbicazione_dataset']->content());
+                $this->xmlWriter->writeCData(date( 'Y-m-d', $data_map['data_pubbicazione_dataset']->DataInt));
             }
             $this->xmlWriter->endElement();
 
@@ -83,9 +85,7 @@ class AVCPExporter extends AbstarctExporter
             //
             $this->xmlWriter->startElement( 'dataUltimoAggiornamentoDataset' );
             if($data_map['data_ultimo_aggiornamento_dataset']){
-
-                //FIXME: la data deve essere formato yyyy-MM-dd
-                $this->xmlWriter->writeCData($data_map['data_ultimo_aggiornamento_dataset']->content());
+                $this->xmlWriter->writeCData(date( 'Y-m-d', $data_map['data_ultimo_aggiornamento_dataset']->DataInt));
             }
             $this->xmlWriter->endElement();
 
@@ -100,10 +100,10 @@ class AVCPExporter extends AbstarctExporter
 
             //nillable="false
             $this->xmlWriter->startElement( 'urlFile' );
-
-            //FIXME: questo url deve essere calcolato
-            $this->xmlWriter->writeCData("http://url_da_calcolare");
-
+            //se c'è index.php lo rimuovo
+            $url = str_replace("index.php","",$this->siteUrl);
+            //FIXME: gestire protocollo https
+            $this->xmlWriter->writeCData('http://'.$url.'/exportas/avpc/lotto/'.$parentNode->attribute( 'node_id' ));
             $this->xmlWriter->endElement();
 
             //valori da select presenti nella classe
@@ -184,11 +184,11 @@ class AVCPExporter extends AbstarctExporter
                 //strutturaProponente nillable="false"
                 $this->xmlWriter->startElement( 'strutturaProponente' );
 
-                //codice_fiscale_proponente nillable="false" //lunghezza massima 16
+                //codice_fiscale_piva nillable="false" //lunghezza massima 11 (è una partita iva???)
                 $this->xmlWriter->startElement( 'codiceFiscaleProp' );
-                if ( $data_map['codice_fiscale_proponente'] )
+                if ( $data_map['codice_fiscale_piva_proponente'] )
                 {
-                    $this->xmlWriter->writeCData( $data_map['codice_fiscale_proponente']->content() );
+                    $this->xmlWriter->writeCData( $data_map['codice_fiscale_piva_proponente']->content() );
                 }
                 $this->xmlWriter->endElement();
 
@@ -234,28 +234,27 @@ class AVCPExporter extends AbstarctExporter
 
                     $this->xmlWriter->startElement( 'partecipante' );
 
-
-                    //lunghezza massima 16
-                    if ( $columns[0] )
-                    {
-                        $this->xmlWriter->startElement( 'codiceFiscale' );
-                        $this->xmlWriter->writeCData( $columns[0] );
+                        //lunghezza massima 16
+                        if ( $columns[0] )
+                        {
+                            $this->xmlWriter->startElement( 'codiceFiscale' );
+                            $this->xmlWriter->writeCData( $columns[0] );
+                            $this->xmlWriter->endElement();
+                        }
+                        if ( $columns[1] )
+                        {
+                            $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
+                            $this->xmlWriter->writeCData( $columns[1] );
+                            $this->xmlWriter->endElement();
+                        }
+                        //minOccurs="1" xsd:maxLength value="250"
+                        //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
+                        $this->xmlWriter->startElement( 'ragioneSociale' );
+                        if ( $columns[2] )
+                        {
+                            $this->xmlWriter->writeCData( $columns[2] );
+                        }
                         $this->xmlWriter->endElement();
-                    }
-                    if ( $columns[1] )
-                    {
-                        $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                        $this->xmlWriter->writeCData( $columns[1] );
-                        $this->xmlWriter->endElement();
-                    }
-                    //minOccurs="1" xsd:maxLength value="250"
-                    //FIXME: limitare a 250, forse serve dare errore se non è valorizzato?
-                    $this->xmlWriter->startElement( 'ragioneSociale' );
-                    if ( $columns[2] )
-                    {
-                        $this->xmlWriter->writeCData( $columns[2] );
-                    }
-                    $this->xmlWriter->endElement();
 
                     $this->xmlWriter->endElement();
 
@@ -277,27 +276,27 @@ class AVCPExporter extends AbstarctExporter
 
                     $this->xmlWriter->startElement( 'aggiudicatario' );
 
-                    //lunghezza massima 16
-                    if ( $columns[0] )
-                    {
-                        $this->xmlWriter->startElement( 'codiceFiscale' );
-                        $this->xmlWriter->writeCData( $columns[0] );
+                        //lunghezza massima 16
+                        if ( $columns[0] )
+                        {
+                            $this->xmlWriter->startElement( 'codiceFiscale' );
+                            $this->xmlWriter->writeCData( $columns[0] );
+                            $this->xmlWriter->endElement();
+                        }
+                        if ( $columns[1] )
+                        {
+                            $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
+                            $this->xmlWriter->writeCData( $columns[1] );
+                            $this->xmlWriter->endElement();
+                        }
+                        //minOccurs="1" xsd:maxLength value="250"
+                        //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
+                        $this->xmlWriter->startElement( 'ragioneSociale' );
+                        if ( $columns[2] )
+                        {
+                            $this->xmlWriter->writeCData( $columns[2] );
+                        }
                         $this->xmlWriter->endElement();
-                    }
-                    if ( $columns[1] )
-                    {
-                        $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                        $this->xmlWriter->writeCData( $columns[1] );
-                        $this->xmlWriter->endElement();
-                    }
-                    //minOccurs="1" xsd:maxLength value="250"
-                    //FIXME: limitare a 250, forse serve dare errore se non è valorizzato?
-                    $this->xmlWriter->startElement( 'ragioneSociale' );
-                    if ( $columns[2] )
-                    {
-                        $this->xmlWriter->writeCData( $columns[2] );
-                    }
-                    $this->xmlWriter->endElement();
 
                     $this->xmlWriter->endElement();
 
@@ -305,7 +304,7 @@ class AVCPExporter extends AbstarctExporter
 
                 $this->xmlWriter->endElement();
 
-                //FIXME: formattare improto secondo xsd
+                //FIXME: formattare importo secondo xsd (solo numeri, rimuovere simboli tipo euro)
                 //importoAggiudicazione
                 if ( $data_map['importo_aggiudicazione'] )
                 {
