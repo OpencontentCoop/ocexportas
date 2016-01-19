@@ -32,10 +32,20 @@ abstract class AbstarctExporter
      * @var eZContentClass
      */
     protected $mainClass;
-    
+    /**
+     * @var Module
+     */
+    protected $module;
+
     abstract function transformNode( eZContentObjectTreeNode $node );
     
     abstract function handleDownload();
+
+
+    public function setModule($Module )
+    {
+        $this->module = $Module;
+    }
 
     public function setUserParameter( array $parameters = null )
     {         
@@ -65,7 +75,8 @@ abstract class AbstarctExporter
     }
     
     public function __construct( $parentNodeID, $classIdentifier )
-    {        
+    {
+
         if ( !$parentNodeID && !$classIdentifier )
         {
             throw new InvalidArgumentException( "Arguments not found" ); 
@@ -165,7 +176,7 @@ abstract class AbstarctExporter
     }
     
     public function fetch()
-    {                        
+    {
         return $this->mainNode->subTree( $this->fetchParameters );                
     }
     
