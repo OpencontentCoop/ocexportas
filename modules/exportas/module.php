@@ -20,6 +20,18 @@ $ViewList['custom'] = array(
     'params' => array( 'ExportHandlerIdentifier', 'ClassIdentifier', 'ParentNodeID' )
 );
 
+$ViewList['avpc'] = array(
+    'functions' => array( 'avpc' ),
+    'script' => 'avpc.php',
+    'params' => array( 'ClassIdentifier', 'ParentNodeID' )
+);
+
+$ViewList['csvsicopat'] = array(
+    'functions' => array( 'csvsicopat' ),
+    'script' => 'csvsicopat.php',
+    'params' => array( 'ClassIdentifier', 'ParentNodeID' )
+);
+
 
 $ClassID = array(
     'name' => 'Class',
@@ -55,6 +67,18 @@ $FunctionList['xml'] = array(
 );
 
 $FunctionList['custom'] = array(
+    'Class' => $ClassID,
+    'Section' => $SectionID,
+    'Node' => $Node
+);
+
+$FunctionList['avpc'] = array(
+    'Class' => $ClassID,
+    'Section' => $SectionID,
+    'Node' => $Node
+);
+
+$FunctionList['csvsicopat'] = array(
     'Class' => $ClassID,
     'Section' => $SectionID,
     'Node' => $Node
