@@ -8,6 +8,8 @@ try
 
     $CSVSICOPATExporter = new CSVSICOPATExporter( $ParentNodeID, $ClassIdentifier );
     $CSVSICOPATExporter->setUserParameter( $UserParameters );
+    $CSVSICOPATExporter->setModule( $Module );
+
 }
 catch ( InvalidArgumentException $e )
 {
@@ -22,7 +24,14 @@ catch ( Exception $e )
 
 ob_get_clean(); //chiudo l'ob_start dell'index.php
 
-$CSVSICOPATExporter->handleDownload();
+$errors = $CSVSICOPATExporter->createValues();
+
+//if(!empty($errors)){
+//$tpl->setVariable( "errors", $errors);
+//$tpl->fetch( 'design:errors/csv_sicopat_errors.tpl' );
+//}else{
+    $CSVSICOPATExporter->handleDownload();
+//}
 
 eZExecution::cleanExit();
 

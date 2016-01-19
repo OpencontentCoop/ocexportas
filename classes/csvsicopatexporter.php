@@ -6,6 +6,10 @@ class CSVSICOPATExporter extends AbstarctExporter
     protected $parentNodeID;
     protected $id_gruppo=0;
     private static $NO_MANDATORY_DATA = 'NO_MANDATORY_DATA';
+    protected $values = array();
+    protected $errors = array();
+    protected $errorDescriptor = array();
+
 
     private static $INVIATO = 'invitato';
     private static $PARTECIPANTE = 'partecipante';
@@ -13,16 +17,15 @@ class CSVSICOPATExporter extends AbstarctExporter
     
     public function __construct( $parentNodeID, $classIdentifier )
     {
-
         $this->functionName = 'csv';
         parent::__construct( $parentNodeID, $classIdentifier );
         $this->parentNodeID = $parentNodeID;
         $this->createCSVHeader();
+        $this->createErrorDescriptor();
     }
 
     private function createCSVHeader(){
         $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','DATA_INIZIO','DATA_ULTIMAZIONE','IMPORTO_SOMME_LIQUIDATE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
-
     }
 
     function transformNode( eZContentObjectTreeNode $node )
@@ -65,8 +68,11 @@ class CSVSICOPATExporter extends AbstarctExporter
         //nillable="false
         $anno_pubblicazione = self::$NO_MANDATORY_DATA;
         if($parent_data_map['anno_riferimento']){
+
             //è un int da classe
-            $anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
+            if($parent_data_map['anno_riferimento']->content()){
+                $anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
+            }
         }
         $row[] = $anno_pubblicazione;
 
@@ -86,20 +92,25 @@ class CSVSICOPATExporter extends AbstarctExporter
         $scelta_contraente = self::$NO_MANDATORY_DATA;
         if ( $data_map['scelta_contraente'] )
         {
-            $scelta_contraente = $data_map['scelta_contraente']->title();
-            //tengo solo numeri come previsto da documentazione
-            $scelta_contraente = preg_replace( '/[^0-9]/', '', $scelta_contraente );
+            if ( $data_map['scelta_contraente']->title())
+            {
+                $scelta_contraente = $data_map['scelta_contraente']->title();
+                //tengo solo numeri come previsto da documentazione
+                $scelta_contraente = preg_replace( '/[^0-9]/', '', $scelta_contraente );
+            }
         }
         $row[] = $scelta_contraente;
-
 
         //---------------------------------------------------------------------------
         //IMPORTO_GARA
         $importo_gara = self::$NO_MANDATORY_DATA;
         if ( $data_map['importo_gara'] )
         {
-            //FIXME: formattare importo secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
-            $importo_gara = $data_map['importo_gara']->content();
+            if ( $data_map['importo_gara']->content())
+            {
+                //FIXME: check formato importi secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
+                $importo_gara = $data_map['importo_gara']->content();
+            }
         }
         $row[] = $importo_gara;
 
@@ -108,7 +119,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $importo_aggiudicazione='';
         if ( $data_map['importo_aggiudicazione'] )
         {
-            //FIXME: formattare importo secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
+            //FIXME: check formato importi secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
             $importo_aggiudicazione = $data_map['importo_aggiudicazione']->content();
         }
         $row[] = $importo_aggiudicazione;
@@ -136,7 +147,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $importo_somme_liquidate='';
         if ( $data_map['importo_somme_liquidate'] )
         {
-            //FIXME: formattare importo secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
+            //FIXME: check formato importi secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
             $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
         }
         $row[] = $importo_somme_liquidate;
@@ -199,6 +210,9 @@ class CSVSICOPATExporter extends AbstarctExporter
             $values[] = array_merge($row, $anagrafica);
         }
 
+        //gestione eventuali errori
+        $this->manageErrors($values, $object);
+
         return $values;
     }
 
@@ -247,7 +261,8 @@ class CSVSICOPATExporter extends AbstarctExporter
         $this->completeWithType($anagrafiche, $type);
     }
 
-    private function completeWithType(&$anagrafiche, $type){
+    private function completeWithType(&$anagrafiche, $type)
+    {
 
         //ATTRIBUTO_AGGIUDICATARIA
         if ( $type == self::$INVIATO )
@@ -272,9 +287,26 @@ class CSVSICOPATExporter extends AbstarctExporter
         }
     }
 
+
+    function createValues()
+    {
+
+        $items = $this->fetch();
+
+        foreach ( $items as $item )
+        {
+            $this->values = array_merge($this->values, $this->transformNode( $item ));
+        }
+
+        return $this->errors;
+    }
+
+
     function handleDownload()
-    {                                                                
+    {
+
         $filename = $this->filename . '.csv';
+
         header( 'X-Powered-By: eZ Publish' );
         header( 'Content-Description: File Transfer' );
         header( 'Content-Type: text/csv; charset=utf-8' );
@@ -290,38 +322,80 @@ class CSVSICOPATExporter extends AbstarctExporter
 
         $output = fopen('php://output', 'w');
         $runOnce = false;
-        do
-        {
-            $items = $this->fetch();
 
-            foreach ( $items as $item )
-            {            
-                $values = $this->transformNode( $item );
+            foreach ( $this->values as $value )
+            {
 
-                foreach ( $values as $value )
+                if ( !$runOnce )
                 {
-                    if ( !$runOnce )
-                    {
-                        fputcsv(
-                            $output,
-                            array_values( $this->CSVheaders ),
-                            $this->options['CSVDelimiter'],
-                            $this->options['CSVEnclosure']
-                        );
-                        $runOnce = true;
-                    }
                     fputcsv(
                         $output,
-                        $value,
+                        array_values( $this->CSVheaders ),
                         $this->options['CSVDelimiter'],
                         $this->options['CSVEnclosure']
                     );
-                    flush();
+                    $runOnce = true;
                 }
-            }            
-            $this->fetchParameters['Offset'] += $length;
-            
-        } while ( count( $items ) == $length );
+                fputcsv(
+                    $output,
+                    $value,
+                    $this->options['CSVDelimiter'],
+                    $this->options['CSVEnclosure']
+                );
+                flush();
+        }
+        $this->fetchParameters['Offset'] += $length;
+
+    }
+
+
+    private function manageErrors($values, $object){
+
+        $object_id = $object->ID;
+
+        foreach ( $values as $value ){
+
+            //recupero le posizioni degli errori
+            $errors_positions = array_keys($value, self::$NO_MANDATORY_DATA);
+
+            foreach ( $errors_positions as $errors_position )
+            {
+                //prendo l'identificatore dell'errore
+                $error_identifier = $this->CSVheaders[$errors_position];
+                $error_description = $this->errorDescriptor[$error_identifier];
+                $errors = array();
+
+                if (array_key_exists($object_id, $this->errors)) {
+                    $errors = $this->errors[$object_id];
+                }
+
+                array_push($errors, $error_description);
+                $errors = array_unique($errors);
+                $this->errors[$object_id] = $errors;
+            }
+        }
+    }
+
+    private function createErrorDescriptor(){
+
+        $this->errorDescriptor = array('CIG' => "CIG è un campo obbligatorio. Va sempre indicato il CIG oppure l'identificativo PAT assegnato da SICOPAT, oppure, se si tratta di primo inserimento di un contratto senza CIG, inserire un identificativo di 10 caratteri che inizi con 9 (ES 9000000001, 9000000002, ecc. ) e che risulti univoco all’interno del file. L'associazione con l'identificativo assegnato dal sistema SICOPAT verrà specificata nell'esito del caricamento.",
+                                       'FLAG_CONTRATTO_SENZA_CIG' => "",
+                                       'ANNO_PUBBLICAZIONE' => 'Anno di pubblicazione è un campo obbligatorio. Sono ammessi 4 caratteri numerici.',
+                                       'OGGETTO' => "",
+                                       'SCELTA_CONTRAENTE' => "Scelta contraente è un campo obbligatorio. Sono ammessi 2 caratteri numerici (01 oppure 1 oppure 14, 17, ecc.)",
+                                       'IMPORTO_GARA' => "Importo gara è un campo obbligatorio. Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
+                                       'IMPORTO_AGGIUDICAZIONE' => "Importo aggiudicazione: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
+                                       'DATA_INIZIO' => "Data inizio: Formato: GG/MM/AAAA.",
+                                       'DATA_ULTIMAZIONE' => "Data ultimazione: Formato: GG/MM/AAAA.",
+                                       'IMPORTO_SOMME_LIQUIDATE' => "Importo somme liquidate: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
+                                       'FLAG_COMPLETAMENTO' => "",
+                                       'CF_AZIENDA' => "Codice fiscale è un campo obbligatorio. Sono ammessi 11 caratteri numerici.",
+                                       'ID_GRUPPO' => "",
+                                       'TIPO_PARTECIPAZIONE' => "Tipo partecipazione: Sono ammessi 1 carattere numerico tra 1,2,3,4 e 5.",
+                                       'ATTRIBUTO_INVITATA' => "",
+                                       'ATRIBUTO_PARTECIPANTE' => "",
+                                       'ATTRIBUTO_AGGIUDICATARIA' => ""
+        );
     }
 }
 

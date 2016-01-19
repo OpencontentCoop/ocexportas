@@ -32,10 +32,20 @@ abstract class AbstarctExporter
      * @var eZContentClass
      */
     protected $mainClass;
-    
+    /**
+     * @var Module
+     */
+    protected $module;
+
     abstract function transformNode( eZContentObjectTreeNode $node );
     
     abstract function handleDownload();
+
+
+    public function setModule($Module )
+    {
+        $this->module = $Module;
+    }
 
     public function setUserParameter( array $parameters = null )
     {         
