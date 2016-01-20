@@ -5,11 +5,10 @@ class CSVSICOPATExporter extends AbstarctExporter
     protected $CSVheaders = array();
     protected $parentNodeID;
     protected $id_gruppo=0;
-    private static $NO_MANDATORY_DATA = 'NO_MANDATORY_DATA';
+    private static $ERRORS_IN_FIELD = 'ERRORS_IN_FIELD';
     protected $values = array();
     protected $errors = array();
     protected $errorDescriptor = array();
-
 
     private static $INVIATO = 'invitato';
     private static $PARTECIPANTE = 'partecipante';
@@ -32,7 +31,6 @@ class CSVSICOPATExporter extends AbstarctExporter
     {
 
         $row = array();
-
         $object = $node->attribute( 'object' );
 
         if(!$object instanceof eZContentObject)
@@ -43,11 +41,16 @@ class CSVSICOPATExporter extends AbstarctExporter
         $data_map = $object->dataMap();
 
         //CIG
-        //cig nillable="false" //xsd:maxLength value="10"
-        $cig = self::$NO_MANDATORY_DATA;
+        //cig nillable="false"
+        $cig = self::$ERRORS_IN_FIELD;
         if ( $data_map['cig'] )
         {
             $cig = $data_map['cig']->content();
+
+            //deve essere di 10 caratteri
+            if(strlen($cig)!=10){
+                $cig = self::$ERRORS_IN_FIELD;
+            }
         }
         $row[] = $cig;
 
@@ -66,30 +69,39 @@ class CSVSICOPATExporter extends AbstarctExporter
         $parent_data_map = $parenObject->dataMap();
 
         //nillable="false
-        $anno_pubblicazione = self::$NO_MANDATORY_DATA;
+        $anno_pubblicazione = self::$ERRORS_IN_FIELD;
         if($parent_data_map['anno_riferimento']){
 
             //è un int da classe
             if($parent_data_map['anno_riferimento']->content()){
                 $anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
             }
+
+            if(strlen($anno_pubblicazione)!=4){
+                $anno_pubblicazione = self::$ERRORS_IN_FIELD;
+            }
         }
         $row[] = $anno_pubblicazione;
 
         //---------------------------------------------------------------------------
         //OGGETTO
-        //oggetto nillable="false" //xsd:maxLength value="250"
+        //oggetto nillable="false"
         $oggetto = '';
         if ( $data_map['oggetto'] )
         {
             $oggetto = $data_map['oggetto']->content();
+
+            //xsd:maxLength value="500"
+            if(strlen($oggetto)>500){
+                $oggetto = self::$ERRORS_IN_FIELD;
+            }
         }
         $row[] = $oggetto;
 
         //---------------------------------------------------------------------------
         //SCELTA_CONTRAENTE
         //sceltaContraente nillable="false" //select a scelta obbligata di valori indicati nella documentazione
-        $scelta_contraente = self::$NO_MANDATORY_DATA;
+        $scelta_contraente = self::$ERRORS_IN_FIELD;
         if ( $data_map['scelta_contraente'] )
         {
             if ( $data_map['scelta_contraente']->title())
@@ -103,13 +115,20 @@ class CSVSICOPATExporter extends AbstarctExporter
 
         //---------------------------------------------------------------------------
         //IMPORTO_GARA
-        $importo_gara = self::$NO_MANDATORY_DATA;
+        $importo_gara = self::$ERRORS_IN_FIELD;
         if ( $data_map['importo_gara'] )
         {
             if ( $data_map['importo_gara']->content())
             {
-                //FIXME: check formato importi secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
                 $importo_gara = $data_map['importo_gara']->content();
+                if($importo_gara instanceof eZPrice){
+
+                    if(!$this->checkImporti($importo_gara->Price)){
+                        $importo_gara = self::$ERRORS_IN_FIELD;
+                    }
+                }else{
+                    $importo_gara = self::$ERRORS_IN_FIELD;
+                }
             }
         }
         $row[] = $importo_gara;
@@ -119,10 +138,34 @@ class CSVSICOPATExporter extends AbstarctExporter
         $importo_aggiudicazione='';
         if ( $data_map['importo_aggiudicazione'] )
         {
-            //FIXME: check formato importi secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
             $importo_aggiudicazione = $data_map['importo_aggiudicazione']->content();
+
+            if($importo_aggiudicazione instanceof eZPrice){
+                if(!$this->checkImporti($importo_aggiudicazione->Price)){
+                    $importo_aggiudicazione = self::$ERRORS_IN_FIELD;
+                }
+            }else{
+                $importo_aggiudicazione = self::$ERRORS_IN_FIELD;
+            }
         }
         $row[] = $importo_aggiudicazione;
+
+        //---------------------------------------------------------------------------
+        //IMPORTO_SOMME_LIQUIDATE
+        $importo_somme_liquidate='';
+        if ( $data_map['importo_somme_liquidate'] )
+        {
+            $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
+
+            if($importo_somme_liquidate instanceof eZPrice){
+                if(!$this->checkImporti($importo_somme_liquidate->Price)){
+                    $importo_somme_liquidate = self::$ERRORS_IN_FIELD;
+                }
+            }else{
+                $importo_somme_liquidate = self::$ERRORS_IN_FIELD;
+            }
+        }
+        $row[] = $importo_somme_liquidate;
 
         //---------------------------------------------------------------------------
         //DATA_INIZIO
@@ -142,15 +185,6 @@ class CSVSICOPATExporter extends AbstarctExporter
         }
         $row[] = $data_ultimazione;
 
-        //---------------------------------------------------------------------------
-        //IMPORTO_SOMME_LIQUIDATE
-        $importo_somme_liquidate='';
-        if ( $data_map['importo_somme_liquidate'] )
-        {
-            //FIXME: check formato importi secondo doc (solo numeri, rimuovere simboli tipo euro e mettere separatore decimali)
-            $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
-        }
-        $row[] = $importo_somme_liquidate;
 
         //---------------------------------------------------------------------------
         //FLAG_COMPLETAMENTO
@@ -221,17 +255,22 @@ class CSVSICOPATExporter extends AbstarctExporter
         $columns = $row['columns'];
 
         //CF_AZIENDA
-        $cf = self::$NO_MANDATORY_DATA;
+
         //CF
-        //lunghezza massima 16
         if ( $columns[0] )
         {
             $cf = $columns[0];
         }
+
         //CF estero
         else if ( $columns[1] )
         {
             $cf = $columns[1];
+        }
+
+        //lunghezza massima 11
+        if(!$cf || strlen($cf)!=11){
+            $cf = self::$ERRORS_IN_FIELD;
         }
 
         $anagrafiche[] = $cf;
@@ -246,9 +285,9 @@ class CSVSICOPATExporter extends AbstarctExporter
         //ruolo (TIPO_PARTECIPAZIONE)
         $tipo_partecipazione = '';
 
-        //se la ci sono più soggetti il tipo partecipazione è obblicatorio
+        //se ci sono più soggetti il tipo partecipazione è obbligatorio
         if($size>1){
-            $tipo_partecipazione = self::$NO_MANDATORY_DATA;
+            $tipo_partecipazione = self::$ERRORS_IN_FIELD;
         }
 
         if ( $columns[3] )
@@ -256,8 +295,13 @@ class CSVSICOPATExporter extends AbstarctExporter
             $tipo_partecipazione = preg_replace( '/[^0-9]/', '', $columns[3]);
         }
 
+        //lunghezza massima 1 carattere
+        if(!$tipo_partecipazione || strlen($tipo_partecipazione)!=1){
+            $tipo_partecipazione = self::$ERRORS_IN_FIELD;
+        }
         $anagrafiche[] = $tipo_partecipazione;
 
+        //completo con il tipo di partecipante
         $this->completeWithType($anagrafiche, $type);
     }
 
@@ -356,7 +400,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         foreach ( $values as $value ){
 
             //recupero le posizioni degli errori
-            $errors_positions = array_keys($value, self::$NO_MANDATORY_DATA);
+            $errors_positions = array_keys($value, self::$ERRORS_IN_FIELD);
 
             foreach ( $errors_positions as $errors_position )
             {
@@ -378,10 +422,10 @@ class CSVSICOPATExporter extends AbstarctExporter
 
     private function createErrorDescriptor(){
 
-        $this->errorDescriptor = array('CIG' => "CIG è un campo obbligatorio. Va sempre indicato il CIG oppure l'identificativo PAT assegnato da SICOPAT, oppure, se si tratta di primo inserimento di un contratto senza CIG, inserire un identificativo di 10 caratteri che inizi con 9 (ES 9000000001, 9000000002, ecc. ) e che risulti univoco all’interno del file. L'associazione con l'identificativo assegnato dal sistema SICOPAT verrà specificata nell'esito del caricamento.",
+        $this->errorDescriptor = array('CIG' => "CIG è un campo obbligatorio. Va sempre indicato oppure sostituito con l'identificativo PAT assegnato da SICOPAT, oppure, se si tratta di primo inserimento di un contratto senza CIG, inserire un identificativo di 10 caratteri che inizi con 9 (ES 9000000001, 9000000002, ecc. ) e che risulti univoco all’interno del file. L'associazione con l'identificativo assegnato dal sistema SICOPAT verrà specificata nell'esito del caricamento.",
                                        'FLAG_CONTRATTO_SENZA_CIG' => "",
                                        'ANNO_PUBBLICAZIONE' => 'Anno di pubblicazione è un campo obbligatorio. Sono ammessi 4 caratteri numerici.',
-                                       'OGGETTO' => "",
+                                       'OGGETTO' => "Oggetto: Lunghezza massima consentita 500 caratteri.",
                                        'SCELTA_CONTRAENTE' => "Scelta contraente è un campo obbligatorio. Sono ammessi 2 caratteri numerici (01 oppure 1 oppure 14, 17, ecc.)",
                                        'IMPORTO_GARA' => "Importo gara è un campo obbligatorio. Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
                                        'IMPORTO_AGGIUDICAZIONE' => "Importo aggiudicazione: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
@@ -389,13 +433,24 @@ class CSVSICOPATExporter extends AbstarctExporter
                                        'DATA_ULTIMAZIONE' => "Data ultimazione: Formato: GG/MM/AAAA.",
                                        'IMPORTO_SOMME_LIQUIDATE' => "Importo somme liquidate: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
                                        'FLAG_COMPLETAMENTO' => "",
-                                       'CF_AZIENDA' => "Codice fiscale è un campo obbligatorio. Sono ammessi 11 caratteri numerici.",
+                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico è un campo obbligatorio. Sono ammessi 11 caratteri numerici.",
                                        'ID_GRUPPO' => "",
                                        'TIPO_PARTECIPAZIONE' => "Tipo partecipazione: Sono ammessi 1 carattere numerico tra 1,2,3,4 e 5.",
                                        'ATTRIBUTO_INVITATA' => "",
                                        'ATRIBUTO_PARTECIPANTE' => "",
                                        'ATTRIBUTO_AGGIUDICATARIA' => ""
         );
+    }
+
+
+    private function checkImporti($importo){
+
+        if($importo){
+            //solo numeri e massimo 2 decimali
+            return preg_match('/^[0-9]+(\.[0-9]{1,2})?$/', $importo);
+        }
+
+        return true;
     }
 }
 
