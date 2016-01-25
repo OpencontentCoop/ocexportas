@@ -222,94 +222,21 @@ class AVCPExporter extends AbstarctExporter
 
                 //---------------------------------------------------------------------------
                 //partecipanti
-                $this->xmlWriter->startElement( 'partecipanti' );
-
-                $data_map = $node->attribute( 'data_map' );
-                $partecipanti_matrix = $data_map['partecipanti']->content();
-
-                foreach ( $partecipanti_matrix->Matrix['rows']['sequential'] as $partecipante )
-                {
-
-                    $columns = $partecipante['columns'];
-
-                    $this->xmlWriter->startElement( 'partecipante' );
-
-                        //lunghezza massima 16
-                        if ( $columns[0] )
-                        {
-                            $this->xmlWriter->startElement( 'codiceFiscale' );
-                            $this->xmlWriter->writeCData( $columns[0] );
-                            $this->xmlWriter->endElement();
-                        }
-                        if ( $columns[1] )
-                        {
-                            $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                            $this->xmlWriter->writeCData( $columns[1] );
-                            $this->xmlWriter->endElement();
-                        }
-                        //minOccurs="1" xsd:maxLength value="250"
-                        //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
-                        $this->xmlWriter->startElement( 'ragioneSociale' );
-                        if ( $columns[2] )
-                        {
-                            $this->xmlWriter->writeCData( $columns[2] );
-                        }
-                        $this->xmlWriter->endElement();
-
-                    $this->xmlWriter->endElement();
-
-                }
-
-                $this->xmlWriter->endElement();
+                $this->createDataFromMatrix($node, 'partecipanti', 'partecipante');
 
                 //---------------------------------------------------------------------------
                 //aggiudicatari
-                $this->xmlWriter->startElement( 'aggiudicatari' );
+                $this->createDataFromMatrix($node, 'aggiudicatari', 'aggiudicatario');
 
-                $data_map = $node->attribute( 'data_map' );
-                $aggiudicatari_matrix = $data_map['aggiudicatari']->content();
-
-                foreach ( $aggiudicatari_matrix->Matrix['rows']['sequential'] as $aggiudicatario )
-                {
-
-                    $columns = $aggiudicatario['columns'];
-
-                    $this->xmlWriter->startElement( 'aggiudicatario' );
-
-                        //lunghezza massima 16
-                        if ( $columns[0] )
-                        {
-                            $this->xmlWriter->startElement( 'codiceFiscale' );
-                            $this->xmlWriter->writeCData( $columns[0] );
-                            $this->xmlWriter->endElement();
-                        }
-                        if ( $columns[1] )
-                        {
-                            $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                            $this->xmlWriter->writeCData( $columns[1] );
-                            $this->xmlWriter->endElement();
-                        }
-                        //minOccurs="1" xsd:maxLength value="250"
-                        //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
-                        $this->xmlWriter->startElement( 'ragioneSociale' );
-                        if ( $columns[2] )
-                        {
-                            $this->xmlWriter->writeCData( $columns[2] );
-                        }
-                        $this->xmlWriter->endElement();
-
-                    $this->xmlWriter->endElement();
-
-                }
-
-                $this->xmlWriter->endElement();
-
-                //FIXME: formattare importo secondo xsd (solo numeri, rimuovere simboli tipo euro)
                 //importoAggiudicazione
                 if ( $data_map['importo_aggiudicazione'] )
                 {
                     $this->xmlWriter->startElement( 'importoAggiudicazione' );
-                    $this->xmlWriter->writeCData( $data_map['importo_aggiudicazione']->content() );
+                    $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
+
+                    if($importo_somme_liquidate instanceof eZPrice){
+                        $this->xmlWriter->writeCData($importo_somme_liquidate->Price);
+                    }
                     $this->xmlWriter->endElement();
                 }
 
@@ -339,12 +266,17 @@ class AVCPExporter extends AbstarctExporter
                     $this->xmlWriter->endElement();
                 }
 
-                //FIXME: formattare importo secondo xsd (solo numeri, rimuovere simboli tipo euro)
                 //importoSommeLiquidate
                 if ( $data_map['importo_somme_liquidate'] )
                 {
+
                     $this->xmlWriter->startElement( 'importoSommeLiquidate' );
-                    $this->xmlWriter->writeCData( $data_map['importo_somme_liquidate']->content() );
+
+                    $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
+
+                    if($importo_somme_liquidate instanceof eZPrice){
+                        $this->xmlWriter->writeCData($importo_somme_liquidate->Price);
+                    }
                     $this->xmlWriter->endElement();
                 }
 
@@ -355,7 +287,106 @@ class AVCPExporter extends AbstarctExporter
 
         }
     }
-    
+
+    private function createDataFromMatrix($node, $root_node, $child_node){
+
+        $this->xmlWriter->startElement( $root_node );
+
+            $data_map = $node->attribute( 'data_map' );
+            $matrix = $data_map[$root_node]->content();
+            $ragg = array();
+
+            foreach ( $matrix->Matrix['rows']['sequential'] as $row )
+            {
+
+                $columns = $row['columns'];
+
+                //se è stato indicato che fa parte di un gruppo, lo gestisco con i raggruppamenti
+                if($columns[3]){
+                    array_push($ragg, $row);
+                    continue;
+                }
+
+                //caso singolo
+                $this->xmlWriter->startElement( $child_node );
+
+                    //lunghezza massima 11
+                    if ( $columns[0] )
+                    {
+                        $this->xmlWriter->startElement( 'codiceFiscale' );
+                        $this->xmlWriter->writeCData( $columns[0] );
+                        $this->xmlWriter->endElement();
+                    }
+                    if ( $columns[1] )
+                    {
+                        $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
+                        $this->xmlWriter->writeCData( $columns[1] );
+                        $this->xmlWriter->endElement();
+                    }
+                    //minOccurs="1" xsd:maxLength value="250"
+                    //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
+                    $this->xmlWriter->startElement( 'ragioneSociale' );
+                    if ( $columns[2] )
+                    {
+                        $this->xmlWriter->writeCData( $columns[2] );
+                    }
+                    $this->xmlWriter->endElement();
+
+                $this->xmlWriter->endElement();
+
+            }
+
+            //gestione raggruppamento
+            if(sizeof($ragg)>0){
+
+                $this->xmlWriter->startElement( 'raggruppamento' );
+
+                    foreach ( $ragg as $row )
+                    {
+                        $columns = $row['columns'];
+
+                        $this->xmlWriter->startElement( 'membro' );
+
+                            //lunghezza massima 11
+                            if ( $columns[0] )
+                            {
+                                $this->xmlWriter->startElement( 'codiceFiscale' );
+                                $this->xmlWriter->writeCData( $columns[0] );
+                                $this->xmlWriter->endElement();
+                            }
+                            if ( $columns[1] )
+                            {
+                                $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
+                                $this->xmlWriter->writeCData( $columns[1] );
+                                $this->xmlWriter->endElement();
+                            }
+
+                            //minOccurs="1" xsd:maxLength value="250"
+                            //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
+                            $this->xmlWriter->startElement( 'ragioneSociale' );
+                                if ( $columns[2] )
+                                {
+                                    $this->xmlWriter->writeCData( $columns[2] );
+                                }
+                            $this->xmlWriter->endElement();
+
+                            //ruolo
+                            $this->xmlWriter->startElement( 'ruolo' );
+                                if ( $columns[4] )
+                                {
+                                    $this->xmlWriter->writeCData(preg_replace( '/[^0-9]/', '', $columns[4]));
+                                }
+                            $this->xmlWriter->endElement();
+
+                        $this->xmlWriter->endElement();
+                    }
+
+                $this->xmlWriter->endElement();
+            }
+
+        $this->xmlWriter->endElement();
+    }
+
     function transformNode( eZContentObjectTreeNode $node )
     {                
         if ( $node instanceof eZContentObjectTreeNode )
@@ -370,12 +401,12 @@ class AVCPExporter extends AbstarctExporter
     {
         @set_time_limit(0);
         $filename = $this->filename . '.xml';
+
         header( 'X-Powered-By: eZ Publish' );
         header( 'Content-Description: File Transfer' );
         header( 'Content-Type: text/xml; charset=utf-8' );
         header( "Content-Disposition: attachment; filename=$filename" );
         header( "Pragma: no-cache" );
-
         header( "Expires: 0" );
 
         $count = $this->fetchCount();
@@ -386,8 +417,8 @@ class AVCPExporter extends AbstarctExporter
             $this->fetchParameters['Offset'] = 0;
             $this->fetchParameters['Limit'] = $length;
             
-            $this->xmlWriter = new XMLWriter();                    
-            $this->xmlWriter->openURI( 'php://output' );         
+            $this->xmlWriter = new XMLWriter();
+            $this->xmlWriter->openURI( 'php://output' );
             $this->xmlWriter->startDocument('1.0', 'UTF-8');
 
             $this->xmlWriter->startElement( 'legge190:pubblicazione' );
