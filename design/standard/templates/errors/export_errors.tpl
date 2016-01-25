@@ -83,7 +83,7 @@ $identifiers = $fieldsParts[1]|explode( ',' )
                                 {/if}
                             {/foreach}
                             <td>
-                                <a href="{concat('/content/edit/', $item.id)}"  class="btn btn-default btn-sm">
+                                <a href="{concat('/content/edit/', $item.id,"/",$item.default_language)}"  class="btn btn-default btn-sm">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </a>
                             </td>

@@ -4,7 +4,7 @@ class CSVSICOPATExporter extends AbstarctExporter
 {
     protected $CSVheaders = array();
     protected $parentNodeID;
-    protected $id_gruppo=0;
+    //protected $id_gruppo=0;
     private static $ERRORS_IN_FIELD = 'ERRORS_IN_FIELD';
     protected $values = array();
     protected $errors = array();
@@ -40,6 +40,7 @@ class CSVSICOPATExporter extends AbstarctExporter
 
         $data_map = $object->dataMap();
 
+        //0
         //CIG
         //cig nillable="false"
         $cig = self::$ERRORS_IN_FIELD;
@@ -55,6 +56,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $cig;
 
         //---------------------------------------------------------------------------
+        //1
         //FLAG_CONTRATTO_SENZA_CIG
         if($cig){
             $row[] = 'N';
@@ -63,6 +65,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         }
 
         //---------------------------------------------------------------------------
+        //2
         //ANNO_PUBBLICAZIONE
         $parentNode = eZContentObjectTreeNode::fetch($this->parentNodeID);
         $parenObject = $parentNode->attribute( 'object' );
@@ -84,6 +87,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $anno_pubblicazione;
 
         //---------------------------------------------------------------------------
+        //3
         //OGGETTO
         //oggetto nillable="false"
         $oggetto = '';
@@ -99,6 +103,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $oggetto;
 
         //---------------------------------------------------------------------------
+        //4
         //SCELTA_CONTRAENTE
         //sceltaContraente nillable="false" //select a scelta obbligata di valori indicati nella documentazione
         $scelta_contraente = self::$ERRORS_IN_FIELD;
@@ -114,6 +119,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $scelta_contraente;
 
         //---------------------------------------------------------------------------
+        //5
         //IMPORTO_GARA
         $importo_gara = self::$ERRORS_IN_FIELD;
         if ( $data_map['importo_gara'] )
@@ -125,6 +131,8 @@ class CSVSICOPATExporter extends AbstarctExporter
 
                     if(!$this->checkImporti($importo_gara->Price)){
                         $importo_gara = self::$ERRORS_IN_FIELD;
+                    }else{
+                        $importo_gara = $importo_gara->Price;
                     }
                 }else{
                     $importo_gara = self::$ERRORS_IN_FIELD;
@@ -134,6 +142,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $importo_gara;
 
         //---------------------------------------------------------------------------
+        //6
         //IMPORTO_AGGIUDICAZIONE
         $importo_aggiudicazione='';
         if ( $data_map['importo_aggiudicazione'] )
@@ -143,6 +152,8 @@ class CSVSICOPATExporter extends AbstarctExporter
             if($importo_aggiudicazione instanceof eZPrice){
                 if(!$this->checkImporti($importo_aggiudicazione->Price)){
                     $importo_aggiudicazione = self::$ERRORS_IN_FIELD;
+                }else{
+                    $importo_aggiudicazione = $importo_aggiudicazione->Price;
                 }
             }else{
                 $importo_aggiudicazione = self::$ERRORS_IN_FIELD;
@@ -151,6 +162,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $importo_aggiudicazione;
 
         //---------------------------------------------------------------------------
+        //7
         //IMPORTO_SOMME_LIQUIDATE
         $importo_somme_liquidate='';
         if ( $data_map['importo_somme_liquidate'] )
@@ -160,6 +172,8 @@ class CSVSICOPATExporter extends AbstarctExporter
             if($importo_somme_liquidate instanceof eZPrice){
                 if(!$this->checkImporti($importo_somme_liquidate->Price)){
                     $importo_somme_liquidate = self::$ERRORS_IN_FIELD;
+                }else{
+                    $importo_somme_liquidate = $importo_somme_liquidate->Price;
                 }
             }else{
                 $importo_somme_liquidate = self::$ERRORS_IN_FIELD;
@@ -168,6 +182,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $importo_somme_liquidate;
 
         //---------------------------------------------------------------------------
+        //8
         //DATA_INIZIO
         $data_inizio = '';
         if ( $data_map['data_inizio'] )
@@ -177,6 +192,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $row[] = $data_inizio;
 
         //---------------------------------------------------------------------------
+        //9
         //DATA_ULTIMAZIONE
         $data_ultimazione = '';
         if ( $data_map['data_ultimazione'] )
@@ -187,6 +203,7 @@ class CSVSICOPATExporter extends AbstarctExporter
 
 
         //---------------------------------------------------------------------------
+        //10
         //FLAG_COMPLETAMENTO
         $flag_completamento='';
         if ( $data_map['flag_completamento'] )
@@ -203,8 +220,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         //ripetendo le righe qualora ci siano più figure dello stesso tipo
 
         $anagrafiche = array();
-        $this->id_gruppo++;
-        $size = 0;
+        //$this->id_gruppo++;
 
         $invitati_matrix = $data_map['invitati']->content();
         $partecipanti_matrix = $data_map['partecipanti']->content();
@@ -214,28 +230,24 @@ class CSVSICOPATExporter extends AbstarctExporter
         $invitati_partecipanti_matrix = $partecipanti_matrix->Matrix['rows']['sequential'];
         $invitati_aggiudicatario_matrix = $aggiudicatario_matrix->Matrix['rows']['sequential'];
 
-        $size+=sizeof($invitati_matrix_sequential);
-        $size+=sizeof($invitati_partecipanti_matrix);
-        $size+=sizeof($invitati_aggiudicatario_matrix);
-
         //---------------------------------------------------------------------------
         //invitati
         foreach ( $invitati_matrix_sequential as $invitato )
         {
-            $this->getDataFromMatrix($anagrafiche[], $invitato, self::$INVIATO, $size);
+            $this->getDataFromMatrix($anagrafiche[], $invitato, self::$INVIATO);
         }
         //---------------------------------------------------------------------------
         //partecipanti
         foreach ( $invitati_partecipanti_matrix as $partecipante )
         {
-            $this->getDataFromMatrix($anagrafiche[], $partecipante, self::$PARTECIPANTE, $size);
+            $this->getDataFromMatrix($anagrafiche[], $partecipante, self::$PARTECIPANTE);
         }
 
         //---------------------------------------------------------------------------
         //aggiudicatari
         foreach ( $invitati_aggiudicatario_matrix as $aggiudicatario )
         {
-            $this->getDataFromMatrix($anagrafiche[], $aggiudicatario, self::$AGGIUDICATARIO, $size);
+            $this->getDataFromMatrix($anagrafiche[], $aggiudicatario, self::$AGGIUDICATARIO);
         }
 
         //DUPLICAZIONE RIGHE
@@ -250,10 +262,11 @@ class CSVSICOPATExporter extends AbstarctExporter
         return $values;
     }
 
-    private function getDataFromMatrix(&$anagrafiche, $row, $type, $size){
+    private function getDataFromMatrix(&$anagrafiche, $row, $type){
 
         $columns = $row['columns'];
 
+        //11
         //CF_AZIENDA
 
         //CF
@@ -275,32 +288,36 @@ class CSVSICOPATExporter extends AbstarctExporter
 
         $anagrafiche[] = $cf;
 
+        //12
         //ID_GRUPPO (valorizzato solo se ci sono più soggetti)
         $id_gruppo = '';
-        if($size>1){
-           $id_gruppo = $this->id_gruppo;
+        if ( $columns[3] )
+        {
+            $id_gruppo = $columns[3];
         }
         $anagrafiche[] = $id_gruppo;
 
+        //13
         //ruolo (TIPO_PARTECIPAZIONE)
         $tipo_partecipazione = '';
 
         //se ci sono più soggetti il tipo partecipazione è obbligatorio
-        if($size>1){
+        if($id_gruppo!=''){
             $tipo_partecipazione = self::$ERRORS_IN_FIELD;
         }
 
-        if ( $columns[3] )
+        if ( $columns[4] )
         {
-            $tipo_partecipazione = preg_replace( '/[^0-9]/', '', $columns[3]);
+            $tipo_partecipazione = preg_replace( '/[^0-9]/', '', $columns[4]);
         }
 
         //lunghezza massima 1 carattere
-        if(!$tipo_partecipazione || strlen($tipo_partecipazione)!=1){
+        if($id_gruppo!='' && (!$tipo_partecipazione || strlen($tipo_partecipazione)!=1)){
             $tipo_partecipazione = self::$ERRORS_IN_FIELD;
         }
         $anagrafiche[] = $tipo_partecipazione;
 
+        //14-15-16
         //completo con il tipo di partecipante
         $this->completeWithType($anagrafiche, $type);
     }
