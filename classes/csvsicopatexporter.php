@@ -281,8 +281,9 @@ class CSVSICOPATExporter extends AbstarctExporter
             $cf = $columns[1];
         }
 
-        //lunghezza massima 11
-        if(!$cf || strlen($cf)!=11){
+        //lunghezza massima 16
+        //sicopat direbbe 11, avcp concede anche 16, per cui metto 16
+        if(!$cf || strlen($cf)>16){
             $cf = self::$ERRORS_IN_FIELD;
         }
 
@@ -450,7 +451,7 @@ class CSVSICOPATExporter extends AbstarctExporter
                                        'DATA_ULTIMAZIONE' => "Data ultimazione: Formato: GG/MM/AAAA.",
                                        'IMPORTO_SOMME_LIQUIDATE' => "Importo somme liquidate: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
                                        'FLAG_COMPLETAMENTO' => "",
-                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico è un campo obbligatorio. Sono ammessi 11 caratteri numerici.",
+                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico è un campo obbligatorio. Massimo 16 caratteri alfanumerici.",
                                        'ID_GRUPPO' => "",
                                        'TIPO_PARTECIPAZIONE' => "Tipo partecipazione: Sono ammessi 1 carattere numerico tra 1,2,3,4 e 5.",
                                        'ATTRIBUTO_INVITATA' => "",
