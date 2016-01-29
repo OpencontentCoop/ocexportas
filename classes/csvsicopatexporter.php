@@ -36,7 +36,7 @@ class CSVSICOPATExporter extends AbstarctExporter
     }
 
     private function createCSVHeader(){
-        $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','DATA_INIZIO','DATA_ULTIMAZIONE','IMPORTO_SOMME_LIQUIDATE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
+        $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','IMPORTO_SOMME_LIQUIDATE','DATA_INIZIO','DATA_ULTIMAZIONE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
     }
 
     function transformNode( eZContentObjectTreeNode $node )
@@ -120,7 +120,7 @@ class CSVSICOPATExporter extends AbstarctExporter
             {
                 $scelta_contraente = $data_map['scelta_contraente']->title();
                 //tengo solo numeri come previsto da documentazione
-                $scelta_contraente = preg_replace( '/[^0-9]/', '', $scelta_contraente );
+                $scelta_contraente = substr($scelta_contraente, 0, 2);
             }
         }
         $row[] = $scelta_contraente;
@@ -292,6 +292,8 @@ class CSVSICOPATExporter extends AbstarctExporter
         //sicopat direbbe 11, avcp concede anche 16, per cui metto 16
         if(!$cf || strlen($cf)>16){
             $cf = self::$ERRORS_IN_FIELD;
+        }else{
+            $cf = $cf;
         }
 
         $anagrafiche[] = $cf;
