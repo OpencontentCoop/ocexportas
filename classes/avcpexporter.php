@@ -408,7 +408,7 @@ class AVCPExporter extends AbstarctExporter
         header( 'X-Powered-By: eZ Publish' );
         header( 'Content-Description: File Transfer' );
         header( 'Content-Type: text/xml; charset=utf-8' );
-        header( "Content-Disposition: attachment; filename=$filename" );
+        header( "Content-Disposition: inline; filename=$filename" );
         header( "Pragma: no-cache" );
         header( "Expires: 0" );
 
