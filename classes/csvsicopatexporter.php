@@ -6,9 +6,12 @@ class CSVSICOPATExporter extends AbstarctExporter
     protected $parentNodeID;
     //protected $id_gruppo=0;
     private static $ERRORS_IN_FIELD = 'ERRORS_IN_FIELD';
+
+    protected $count = 0;
     protected $values = array();
     protected $errors = array();
     protected $errorDescriptor = array();
+    protected $anno_pubblicazione;
 
     private static $INVIATO = 'invitato';
     private static $PARTECIPANTE = 'partecipante';
@@ -16,9 +19,18 @@ class CSVSICOPATExporter extends AbstarctExporter
     
     public function __construct( $parentNodeID, $classIdentifier )
     {
-        $this->functionName = 'csv';
         parent::__construct( $parentNodeID, $classIdentifier );
         $this->parentNodeID = $parentNodeID;
+
+        //dati del parent (pagina trasparenza
+        $parentNode = eZContentObjectTreeNode::fetch($this->parentNodeID);
+        $parenObject = $parentNode->attribute( 'object' );
+        $parent_data_map = $parenObject->dataMap();
+        if($parent_data_map['anno_riferimento'])
+        {
+            $this->anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
+        }
+
         $this->createCSVHeader();
         $this->createErrorDescriptor();
     }
@@ -30,6 +42,9 @@ class CSVSICOPATExporter extends AbstarctExporter
     function transformNode( eZContentObjectTreeNode $node )
     {
 
+        @set_time_limit(0);
+
+        //$row = new SplFixedArray($this->count);
         $row = array();
         $object = $node->attribute( 'object' );
 
@@ -67,18 +82,10 @@ class CSVSICOPATExporter extends AbstarctExporter
         //---------------------------------------------------------------------------
         //2
         //ANNO_PUBBLICAZIONE
-        $parentNode = eZContentObjectTreeNode::fetch($this->parentNodeID);
-        $parenObject = $parentNode->attribute( 'object' );
-        $parent_data_map = $parenObject->dataMap();
-
         //nillable="false
         $anno_pubblicazione = self::$ERRORS_IN_FIELD;
-        if($parent_data_map['anno_riferimento']){
-
-            //è un int da classe
-            if($parent_data_map['anno_riferimento']->content()){
-                $anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
-            }
+        if($this->anno_pubblicazione){
+            $anno_pubblicazione = $this->anno_pubblicazione;
 
             if(strlen($anno_pubblicazione)!=4){
                 $anno_pubblicazione = self::$ERRORS_IN_FIELD;
@@ -352,15 +359,28 @@ class CSVSICOPATExporter extends AbstarctExporter
 
     function createValues()
     {
+        $count = $this->fetchCount();
 
-        $items = $this->fetch();
-
-        foreach ( $items as $item )
+        if ( $count > 0 )
         {
-            $this->values = array_merge($this->values, $this->transformNode( $item ));
-        }
+            $length = 50;
+            $this->fetchParameters['Offset'] = 0;
+            $this->fetchParameters['Limit'] = $length;
 
-        return $this->errors;
+            do
+            {
+                $items = $this->fetch();
+
+                foreach ( $items as $item )
+                {
+                    $this->values = array_merge($this->values, $this->transformNode( $item ));
+                }
+                $this->fetchParameters['Offset'] += $length;
+
+            } while ( count( $items ) == $length );
+
+            return $this->errors;
+        }
     }
 
 
@@ -375,12 +395,6 @@ class CSVSICOPATExporter extends AbstarctExporter
         header( "Content-Disposition: attachment; filename=$filename" );
         header( "Pragma: no-cache" );
         header( "Expires: 0" );
-
-        //$count = $this->fetchCount();
-        $length = 50;
-
-        $this->fetchParameters['Offset'] = 0;
-        $this->fetchParameters['Limit'] = $length;
 
         $output = fopen('php://output', 'w');
         $runOnce = false;
@@ -406,7 +420,6 @@ class CSVSICOPATExporter extends AbstarctExporter
                 );
                 flush();
         }
-        $this->fetchParameters['Offset'] += $length;
 
     }
 

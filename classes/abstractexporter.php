@@ -100,13 +100,14 @@ abstract class AbstarctExporter
         $this->setClassIdentifier( $classIdentifier );
         $this->setParentNode( $parentNodeID );
         $this->setFetchParameters();
-        
+
         $checkAccess = $this->checkAccess( $this->functionName );
         if (  $checkAccess !== true )
         {
             eZDebug::writeError( $checkAccess, __METHOD__ );
             throw new Exception( 'Current user can not export this csv' );            
-        }        
+        }
+
     }
     
     public function setClassIdentifier( $classIdentifier )
@@ -192,14 +193,14 @@ abstract class AbstarctExporter
     }
     
     protected function checkAccess()
-    {        
-        
+    {
+
         $user = eZUser::currentUser();
         $userID = $user->attribute( 'contentobject_id' );
 
         $accessResult = $user->hasAccessTo( 'exportas' , $this->functionName );
         $accessWord = $accessResult['accessWord'];
-        
+
         if ( $accessWord == 'yes' )
         {
             return true;

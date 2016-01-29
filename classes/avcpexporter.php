@@ -14,9 +14,10 @@ class AVCPExporter extends AbstarctExporter
     
     public function __construct( $parentNodeID, $classIdentifier )
     {
-        $this->functionName = 'xml';        
+
+        $this->functionName = 'xml';
         parent::__construct( $parentNodeID, $classIdentifier );
-        
+
         $this->tagStyle = self::USE_GENERIC_TAG;
         if ( isset( $this->options['XMLTagStyle'] ) && $this->options['XMLTagStyle'] == 'custom' )
         {
@@ -27,6 +28,7 @@ class AVCPExporter extends AbstarctExporter
 
         $siteINI = eZINI::instance();
         $this->siteUrl = rtrim( $siteINI->variable( 'SiteSettings', 'SiteURL' ), '/' );
+
 
     }
 
@@ -399,6 +401,7 @@ class AVCPExporter extends AbstarctExporter
     
     function handleDownload()
     {
+
         @set_time_limit(0);
         $filename = $this->filename . '.xml';
 
