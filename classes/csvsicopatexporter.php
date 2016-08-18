@@ -6,29 +6,43 @@ class CSVSICOPATExporter extends AbstarctExporter
     protected $parentNodeID;
     //protected $id_gruppo=0;
     private static $ERRORS_IN_FIELD = 'ERRORS_IN_FIELD';
+
+    protected $count = 0;
     protected $values = array();
     protected $errors = array();
     protected $errorDescriptor = array();
+    protected $anno_pubblicazione;
 
     private static $INVIATO = 'invitato';
     private static $PARTECIPANTE = 'partecipante';
     private static $AGGIUDICATARIO = 'aggiudicatario';
-    
+
     public function __construct( $parentNodeID, $classIdentifier )
     {
-        $this->functionName = 'csv';
         parent::__construct( $parentNodeID, $classIdentifier );
         $this->parentNodeID = $parentNodeID;
+
+        //dati del parent (pagina trasparenza
+        $parentNode = eZContentObjectTreeNode::fetch($this->parentNodeID);
+        $parenObject = $parentNode->attribute( 'object' );
+        $parent_data_map = $parenObject->dataMap();
+        if($parent_data_map['anno_riferimento'])
+        {
+            $this->anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
+        }
+
         $this->createCSVHeader();
         $this->createErrorDescriptor();
     }
 
     private function createCSVHeader(){
-        $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','DATA_INIZIO','DATA_ULTIMAZIONE','IMPORTO_SOMME_LIQUIDATE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
+        $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','IMPORTO_SOMME_LIQUIDATE','DATA_INIZIO','DATA_ULTIMAZIONE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
     }
 
     function transformNode( eZContentObjectTreeNode $node )
     {
+
+        set_time_limit(0);
 
         $row = array();
         $object = $node->attribute( 'object' );
@@ -67,18 +81,10 @@ class CSVSICOPATExporter extends AbstarctExporter
         //---------------------------------------------------------------------------
         //2
         //ANNO_PUBBLICAZIONE
-        $parentNode = eZContentObjectTreeNode::fetch($this->parentNodeID);
-        $parenObject = $parentNode->attribute( 'object' );
-        $parent_data_map = $parenObject->dataMap();
-
         //nillable="false
         $anno_pubblicazione = self::$ERRORS_IN_FIELD;
-        if($parent_data_map['anno_riferimento']){
-
-            //è un int da classe
-            if($parent_data_map['anno_riferimento']->content()){
-                $anno_pubblicazione = $parent_data_map['anno_riferimento']->content();
-            }
+        if($this->anno_pubblicazione){
+            $anno_pubblicazione = $this->anno_pubblicazione;
 
             if(strlen($anno_pubblicazione)!=4){
                 $anno_pubblicazione = self::$ERRORS_IN_FIELD;
@@ -113,7 +119,7 @@ class CSVSICOPATExporter extends AbstarctExporter
             {
                 $scelta_contraente = $data_map['scelta_contraente']->title();
                 //tengo solo numeri come previsto da documentazione
-                $scelta_contraente = preg_replace( '/[^0-9]/', '', $scelta_contraente );
+                $scelta_contraente = substr($scelta_contraente, 0, 2);
             }
         }
         $row[] = $scelta_contraente;
@@ -187,7 +193,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $data_inizio = '';
         if ( $data_map['data_inizio'] )
         {
-          $data_inizio = date( 'd/m/Y', $data_map['data_inizio']->DataInt );
+            $data_inizio = date( 'd/m/Y', $data_map['data_inizio']->DataInt );
         }
         $row[] = $data_inizio;
 
@@ -230,6 +236,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         $invitati_partecipanti_matrix = $partecipanti_matrix->Matrix['rows']['sequential'];
         $invitati_aggiudicatario_matrix = $aggiudicatario_matrix->Matrix['rows']['sequential'];
 
+
         //---------------------------------------------------------------------------
         //invitati
         foreach ( $invitati_matrix_sequential as $invitato )
@@ -250,6 +257,7 @@ class CSVSICOPATExporter extends AbstarctExporter
             $this->getDataFromMatrix($anagrafiche[], $aggiudicatario, self::$AGGIUDICATARIO);
         }
 
+
         //DUPLICAZIONE RIGHE
         //creo tante righe quanto sono le anagrafiche
         foreach ( $anagrafiche as $anagrafica ){
@@ -258,6 +266,10 @@ class CSVSICOPATExporter extends AbstarctExporter
 
         //gestione eventuali errori
         $this->manageErrors($values, $object);
+
+        $object->resetDataMap();
+        eZContentObject::clearCache($object->attribute( 'id' ));
+        unset( $data_map );
 
         return $values;
     }
@@ -281,9 +293,12 @@ class CSVSICOPATExporter extends AbstarctExporter
             $cf = $columns[1];
         }
 
-        //lunghezza massima 11
-        if(!$cf || strlen($cf)!=11){
+        //lunghezza massima 16
+        //sicopat direbbe 11, avcp concede anche 16, per cui metto 16
+        if(!$cf || strlen($cf)>16){
             $cf = self::$ERRORS_IN_FIELD;
+        }else{
+            $cf = $cf;
         }
 
         $anagrafiche[] = $cf;
@@ -351,15 +366,36 @@ class CSVSICOPATExporter extends AbstarctExporter
 
     function createValues()
     {
+        $count = $this->fetchCount();
 
-        $items = $this->fetch();
-
-        foreach ( $items as $item )
+        if ( $count > 0 )
         {
-            $this->values = array_merge($this->values, $this->transformNode( $item ));
-        }
+            $length = 50;
+            $this->fetchParameters['Offset'] = 0;
+            $this->fetchParameters['Limit'] = $length;
 
-        return $this->errors;
+            do
+            {
+                $items = $this->fetch();
+
+                foreach ( $items as $item )
+                {
+                    //FIX: array_merge usa troppa memoria
+                    //$this->values = array_merge($this->values, $this->transformNode( $item ));
+
+                    foreach ( $this->transformNode( $item ) as $value ){
+                        $this->values[]= $value;
+                    }
+
+                    unset($item);
+                }
+
+                $this->fetchParameters['Offset'] += $length;
+
+            } while ( count( $items ) == $length );
+
+            return $this->errors;
+        }
     }
 
 
@@ -375,37 +411,30 @@ class CSVSICOPATExporter extends AbstarctExporter
         header( "Pragma: no-cache" );
         header( "Expires: 0" );
 
-        //$count = $this->fetchCount();
-        $length = 50;
-
-        $this->fetchParameters['Offset'] = 0;
-        $this->fetchParameters['Limit'] = $length;
-
         $output = fopen('php://output', 'w');
         $runOnce = false;
 
-            foreach ( $this->values as $value )
-            {
+        foreach ( $this->values as $value )
+        {
 
-                if ( !$runOnce )
-                {
-                    fputcsv(
-                        $output,
-                        array_values( $this->CSVheaders ),
-                        $this->options['CSVDelimiter'],
-                        $this->options['CSVEnclosure']
-                    );
-                    $runOnce = true;
-                }
+            if ( !$runOnce )
+            {
                 fputcsv(
                     $output,
-                    $value,
+                    array_values( $this->CSVheaders ),
                     $this->options['CSVDelimiter'],
                     $this->options['CSVEnclosure']
                 );
-                flush();
+                $runOnce = true;
+            }
+            fputcsv(
+                $output,
+                $value,
+                $this->options['CSVDelimiter'],
+                $this->options['CSVEnclosure']
+            );
+            flush();
         }
-        $this->fetchParameters['Offset'] += $length;
 
     }
 
@@ -450,7 +479,7 @@ class CSVSICOPATExporter extends AbstarctExporter
                                        'DATA_ULTIMAZIONE' => "Data ultimazione: Formato: GG/MM/AAAA.",
                                        'IMPORTO_SOMME_LIQUIDATE' => "Importo somme liquidate: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
                                        'FLAG_COMPLETAMENTO' => "",
-                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico è un campo obbligatorio. Sono ammessi 11 caratteri numerici.",
+                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico è un campo obbligatorio. Massimo 16 caratteri alfanumerici.",
                                        'ID_GRUPPO' => "",
                                        'TIPO_PARTECIPAZIONE' => "Tipo partecipazione: Sono ammessi 1 carattere numerico tra 1,2,3,4 e 5.",
                                        'ATTRIBUTO_INVITATA' => "",

@@ -178,7 +178,7 @@ abstract class AbstarctExporter
     
     public function fetch()
     {
-        return $this->mainNode->subTree( $this->fetchParameters );                
+        return $this->mainNode->subTree( $this->fetchParameters );
     }
     
     public function fetchCount()
