@@ -236,31 +236,31 @@ class CSVSICOPATExporter extends AbstarctExporter
         $invitati_partecipanti_matrix = $partecipanti_matrix->Matrix['rows']['sequential'];
         $invitati_aggiudicatario_matrix = $aggiudicatario_matrix->Matrix['rows']['sequential'];
 
-
         //---------------------------------------------------------------------------
         //invitati
         foreach ( $invitati_matrix_sequential as $invitato )
         {
-            $this->getDataFromMatrix($anagrafiche[], $invitato, self::$INVIATO);
+            $this->getDataFromMatrix($anagrafiche, $invitato, self::$INVIATO);
         }
         //---------------------------------------------------------------------------
         //partecipanti
         foreach ( $invitati_partecipanti_matrix as $partecipante )
         {
-            $this->getDataFromMatrix($anagrafiche[], $partecipante, self::$PARTECIPANTE);
+            $this->getDataFromMatrix($anagrafiche, $partecipante, self::$PARTECIPANTE);
         }
 
         //---------------------------------------------------------------------------
         //aggiudicatari
         foreach ( $invitati_aggiudicatario_matrix as $aggiudicatario )
         {
-            $this->getDataFromMatrix($anagrafiche[], $aggiudicatario, self::$AGGIUDICATARIO);
+            $this->getDataFromMatrix($anagrafiche, $aggiudicatario, self::$AGGIUDICATARIO);
         }
-
 
         //DUPLICAZIONE RIGHE
         //creo tante righe quanto sono le anagrafiche
-        foreach ( $anagrafiche as $anagrafica ){
+
+        foreach ( $anagrafiche  as $key=>$anagrafica ){
+            ksort($anagrafica);
             $values[] = array_merge($row, $anagrafica);
         }
 
@@ -301,7 +301,24 @@ class CSVSICOPATExporter extends AbstarctExporter
             $cf = $cf;
         }
 
-        $anagrafiche[] = $cf;
+        $cf = trim($cf);
+
+        $anagrafiche_inner = array();
+
+        //controllo se l'anagrafica è già presente come partecipante, destinatario o aggiudicatario
+        if(array_key_exists($cf, $anagrafiche)){
+
+           //se è già presente uso quella
+           $anagrafiche_inner = $anagrafiche[$cf];
+        }else{
+
+            //se non è presente imposto fin da ora tutti i flag a no, poi in base al fatto che sia o meno partecipante, destinatario o aggiudicatario, imposterò a sì i campi giusti nel metodo completeWithType
+            $anagrafiche_inner[3] = 'N';
+            $anagrafiche_inner[4] = 'N';
+            $anagrafiche_inner[5] = 'N';
+        }
+
+        $anagrafiche_inner[0] = $cf;
 
         //12
         //ID_GRUPPO (valorizzato solo se ci sono più soggetti)
@@ -310,7 +327,7 @@ class CSVSICOPATExporter extends AbstarctExporter
         {
             $id_gruppo = $columns[3];
         }
-        $anagrafiche[] = $id_gruppo;
+        $anagrafiche_inner[1] = $id_gruppo;
 
         //13
         //ruolo (TIPO_PARTECIPAZIONE)
@@ -330,11 +347,13 @@ class CSVSICOPATExporter extends AbstarctExporter
         if($id_gruppo!='' && (!$tipo_partecipazione || strlen($tipo_partecipazione)!=1)){
             $tipo_partecipazione = self::$ERRORS_IN_FIELD;
         }
-        $anagrafiche[] = $tipo_partecipazione;
+        $anagrafiche_inner[2] = $tipo_partecipazione;
 
         //14-15-16
         //completo con il tipo di partecipante
-        $this->completeWithType($anagrafiche, $type);
+        $this->completeWithType($anagrafiche_inner, $type);
+
+        $anagrafiche[$cf] = $anagrafiche_inner;
     }
 
     private function completeWithType(&$anagrafiche, $type)
@@ -343,23 +362,17 @@ class CSVSICOPATExporter extends AbstarctExporter
         //ATTRIBUTO_AGGIUDICATARIA
         if ( $type == self::$INVIATO )
         {
-            $anagrafiche[] = 'S';
-            $anagrafiche[] = 'N';
-            $anagrafiche[] = 'N';
+            $anagrafiche[3] = 'S';
         }
 
         if ( $type == self::$PARTECIPANTE )
         {
-            $anagrafiche[] = 'N';
-            $anagrafiche[] = 'S';
-            $anagrafiche[] = 'N';
+            $anagrafiche[4] = 'S';
         }
 
         if ( $type == self::$AGGIUDICATARIO )
         {
-            $anagrafiche[] = 'N';
-            $anagrafiche[] = 'N';
-            $anagrafiche[] = 'S';
+            $anagrafiche[5] = 'S';
         }
     }
 
