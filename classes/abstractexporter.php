@@ -33,14 +33,13 @@ abstract class AbstarctExporter
      */
     protected $mainClass;
     /**
-     * @var Module
+     * @var eZModule
      */
     protected $module;
 
     abstract function transformNode( eZContentObjectTreeNode $node );
     
     abstract function handleDownload();
-
 
     public function setModule($Module )
     {
