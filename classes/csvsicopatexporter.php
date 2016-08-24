@@ -311,7 +311,6 @@ class CSVSICOPATExporter extends AbstarctExporter
            //se è già presente uso quella
            $anagrafiche_inner = $anagrafiche[$cf];
         }else{
-
             //se non è presente imposto fin da ora tutti i flag a no, poi in base al fatto che sia o meno partecipante, destinatario o aggiudicatario, imposterò a sì i campi giusti nel metodo completeWithType
             $anagrafiche_inner[3] = 'N';
             $anagrafiche_inner[4] = 'N';
