@@ -36,7 +36,7 @@ class CSVSICOPATExporter extends AbstarctExporter
     }
 
     private function createCSVHeader(){
-        $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','IMPORTO_SOMME_LIQUIDATE','DATA_INIZIO','DATA_ULTIMAZIONE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
+        $this->CSVheaders = array('CIG','FLAG_CONTRATTO_SENZA_CIG','ANNO_PUBBLICAZIONE','OGGETTO','SCELTA_CONTRAENTE','IMPORTO_GARA','IMPORTO_AGGIUDICAZIONE','DATA_INIZIO','DATA_ULTIMAZIONE','IMPORTO_SOMME_LIQUIDATE','FLAG_COMPLETAMENTO','CF_AZIENDA','ID_GRUPPO','TIPO_PARTECIPAZIONE','ATTRIBUTO_INVITATA','ATRIBUTO_PARTECIPANTE','ATTRIBUTO_AGGIUDICATARIA');
     }
 
     function transformNode( eZContentObjectTreeNode $node )
@@ -169,6 +169,26 @@ class CSVSICOPATExporter extends AbstarctExporter
 
         //---------------------------------------------------------------------------
         //7
+        //DATA_INIZIO
+        $data_inizio = '';
+        if ( $data_map['data_inizio'] )
+        {
+            $data_inizio = date( 'd/m/Y', $data_map['data_inizio']->DataInt );
+        }
+        $row[] = $data_inizio;
+
+        //---------------------------------------------------------------------------
+        //8
+        //DATA_ULTIMAZIONE
+        $data_ultimazione = '';
+        if ( $data_map['data_ultimazione'] )
+        {
+            $data_ultimazione = date( 'd/m/Y', $data_map['data_ultimazione']->DataInt );
+        }
+        $row[] = $data_ultimazione;
+
+        //---------------------------------------------------------------------------
+        //9
         //IMPORTO_SOMME_LIQUIDATE
         $importo_somme_liquidate='';
         if ( $data_map['importo_somme_liquidate'] )
@@ -186,27 +206,6 @@ class CSVSICOPATExporter extends AbstarctExporter
             }
         }
         $row[] = $importo_somme_liquidate;
-
-        //---------------------------------------------------------------------------
-        //8
-        //DATA_INIZIO
-        $data_inizio = '';
-        if ( $data_map['data_inizio'] )
-        {
-            $data_inizio = date( 'd/m/Y', $data_map['data_inizio']->DataInt );
-        }
-        $row[] = $data_inizio;
-
-        //---------------------------------------------------------------------------
-        //9
-        //DATA_ULTIMAZIONE
-        $data_ultimazione = '';
-        if ( $data_map['data_ultimazione'] )
-        {
-            $data_ultimazione = date( 'd/m/Y', $data_map['data_ultimazione']->DataInt );
-        }
-        $row[] = $data_ultimazione;
-
 
         //---------------------------------------------------------------------------
         //10
