@@ -58,7 +58,7 @@ class AVCPExporter extends AbstarctExporter
         //
         $this->xmlWriter->startElement( 'titolo' );
         if($data_map['titolo']){
-            $this->xmlWriter->writeCData($data_map['titolo']->content());
+            $this->xmlWriter->text($data_map['titolo']->content());
         }
         $this->xmlWriter->endElement();
 
@@ -66,28 +66,28 @@ class AVCPExporter extends AbstarctExporter
         $this->xmlWriter->startElement( 'abstract' );
         if($data_map['abstract']){
             //FIXME: trattare come XML
-            $this->xmlWriter->writeCData($data_map['abstract']->content());
+            $this->xmlWriter->text($data_map['abstract']->content());
         }
         $this->xmlWriter->endElement();
 
         //nillable="false"
         $this->xmlWriter->startElement( 'dataPubbicazioneDataset' );
         if($data_map['data_pubbicazione_dataset']){
-            $this->xmlWriter->writeCData(date( 'Y-m-d', $data_map['data_pubbicazione_dataset']->DataInt));
+            $this->xmlWriter->text(date( 'Y-m-d', $data_map['data_pubbicazione_dataset']->DataInt));
         }
         $this->xmlWriter->endElement();
 
         //nillable="false"
         $this->xmlWriter->startElement( 'entePubblicatore' );
         if($data_map['ente_pubblicatore']){
-            $this->xmlWriter->writeCData($data_map['ente_pubblicatore']->content());
+            $this->xmlWriter->text($data_map['ente_pubblicatore']->content());
         }
         $this->xmlWriter->endElement();
 
         //
         $this->xmlWriter->startElement( 'dataUltimoAggiornamentoDataset' );
         if($data_map['data_ultimo_aggiornamento_dataset']){
-            $this->xmlWriter->writeCData(date( 'Y-m-d', $data_map['data_ultimo_aggiornamento_dataset']->DataInt));
+            $this->xmlWriter->text(date( 'Y-m-d', $data_map['data_ultimo_aggiornamento_dataset']->DataInt));
         }
         $this->xmlWriter->endElement();
 
@@ -96,7 +96,7 @@ class AVCPExporter extends AbstarctExporter
         if($data_map['anno_riferimento']){
 
             //è un int da classe
-            $this->xmlWriter->writeCData($data_map['anno_riferimento']->content());
+            $this->xmlWriter->text($data_map['anno_riferimento']->content());
         }
         $this->xmlWriter->endElement();
 
@@ -105,13 +105,13 @@ class AVCPExporter extends AbstarctExporter
         //se c'è index.php lo rimuovo
         $url = str_replace("index.php","",$this->siteUrl);
         //FIXME: gestire protocollo https
-        $this->xmlWriter->writeCData('http://'.$url.'/exportas/avpc/lotto/'.$parentNode->attribute( 'node_id' ));
+        $this->xmlWriter->text('http://'.$url.'/exportas/avpc/lotto/'.$parentNode->attribute( 'node_id' ));
         $this->xmlWriter->endElement();
 
         //valori da select presenti nella classe
         $this->xmlWriter->startElement( 'licenza' );
         if($data_map['licenza']){
-            $this->xmlWriter->writeCData($data_map['licenza']->title());
+            $this->xmlWriter->text($data_map['licenza']->title());
         }
         $this->xmlWriter->endElement();
 
@@ -178,7 +178,7 @@ class AVCPExporter extends AbstarctExporter
             $this->xmlWriter->startElement( 'cig' );
             if ( $data_map['cig'] )
             {
-                $this->xmlWriter->writeCData( $data_map['cig']->content() );
+                $this->xmlWriter->text( $data_map['cig']->content() );
             }
             $this->xmlWriter->endElement();
 
@@ -190,7 +190,7 @@ class AVCPExporter extends AbstarctExporter
             $this->xmlWriter->startElement( 'codiceFiscaleProp' );
             if ( $data_map['codice_fiscale_piva_proponente'] )
             {
-                $this->xmlWriter->writeCData( $data_map['codice_fiscale_piva_proponente']->content() );
+                $this->xmlWriter->text( $data_map['codice_fiscale_piva_proponente']->content() );
             }
             $this->xmlWriter->endElement();
 
@@ -199,7 +199,7 @@ class AVCPExporter extends AbstarctExporter
             $this->xmlWriter->startElement( 'denominazione' );
             if ( $data_map['denominazione_proponente'] )
             {
-                $this->xmlWriter->writeCData( $data_map['denominazione_proponente']->content() );
+                $this->xmlWriter->text( $data_map['denominazione_proponente']->content() );
             }
             $this->xmlWriter->endElement();
 
@@ -218,7 +218,7 @@ class AVCPExporter extends AbstarctExporter
             $this->xmlWriter->startElement( 'sceltaContraente' );
             if ( $data_map['scelta_contraente'] )
             {
-                $this->xmlWriter->writeCData( $data_map['scelta_contraente']->title() );
+                $this->xmlWriter->text( $data_map['scelta_contraente']->title() );
             }
             $this->xmlWriter->endElement();
 
@@ -237,7 +237,7 @@ class AVCPExporter extends AbstarctExporter
                 $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
 
                 if($importo_somme_liquidate instanceof eZPrice){
-                    $this->xmlWriter->writeCData($importo_somme_liquidate->Price);
+                    $this->xmlWriter->text($importo_somme_liquidate->Price);
                 }
                 $this->xmlWriter->endElement();
             }
@@ -251,7 +251,7 @@ class AVCPExporter extends AbstarctExporter
                 if ( $data_map['data_inizio'] )
                 {
                     $this->xmlWriter->startElement( 'dataInizio' );
-                    $this->xmlWriter->writeCData(
+                    $this->xmlWriter->text(
                         date( 'Y-m-d', $data_map['data_inizio']->DataInt )
                     );
                     $this->xmlWriter->endElement();
@@ -259,7 +259,7 @@ class AVCPExporter extends AbstarctExporter
                 if ( $data_map['data_ultimazione'] )
                 {
                     $this->xmlWriter->startElement( 'dataUltimazione' );
-                    $this->xmlWriter->writeCData(
+                    $this->xmlWriter->text(
                         date( 'Y-m-d', $data_map['data_ultimazione']->DataInt )
                     );
                     $this->xmlWriter->endElement();
@@ -277,7 +277,7 @@ class AVCPExporter extends AbstarctExporter
                 $importo_somme_liquidate = $data_map['importo_somme_liquidate']->content();
 
                 if($importo_somme_liquidate instanceof eZPrice){
-                    $this->xmlWriter->writeCData($importo_somme_liquidate->Price);
+                    $this->xmlWriter->text($importo_somme_liquidate->Price);
                 }
                 $this->xmlWriter->endElement();
             }
@@ -316,13 +316,13 @@ class AVCPExporter extends AbstarctExporter
             if ( $columns[0] )
             {
                 $this->xmlWriter->startElement( 'codiceFiscale' );
-                $this->xmlWriter->writeCData( $columns[0] );
+                $this->xmlWriter->text( $columns[0] );
                 $this->xmlWriter->endElement();
             }
             if ( $columns[1] )
             {
                 $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                $this->xmlWriter->writeCData( $columns[1] );
+                $this->xmlWriter->text( $columns[1] );
                 $this->xmlWriter->endElement();
             }
             //minOccurs="1" xsd:maxLength value="250"
@@ -353,13 +353,13 @@ class AVCPExporter extends AbstarctExporter
                 if ( $columns[0] )
                 {
                     $this->xmlWriter->startElement( 'codiceFiscale' );
-                    $this->xmlWriter->writeCData( $columns[0] );
+                    $this->xmlWriter->text( $columns[0] );
                     $this->xmlWriter->endElement();
                 }
                 if ( $columns[1] )
                 {
                     $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                    $this->xmlWriter->writeCData( $columns[1] );
+                    $this->xmlWriter->text( $columns[1] );
                     $this->xmlWriter->endElement();
                 }
 
@@ -376,7 +376,7 @@ class AVCPExporter extends AbstarctExporter
                 $this->xmlWriter->startElement( 'ruolo' );
                 if ( $columns[4] )
                 {
-                    $this->xmlWriter->writeCData(preg_replace( '/[^0-9]/', '', $columns[4]));
+                    $this->xmlWriter->text(preg_replace( '/[^0-9]/', '', $columns[4]));
                 }
                 $this->xmlWriter->endElement();
 

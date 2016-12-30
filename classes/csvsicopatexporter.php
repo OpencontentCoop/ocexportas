@@ -273,7 +273,8 @@ class CSVSICOPATExporter extends AbstarctExporter
         return $values;
     }
 
-    private function getDataFromMatrix(&$anagrafiche, $row, $type){
+    private function getDataFromMatrix(&$anagrafiche, $row, $type)
+    {
 
         $columns = $row['columns'];
 
@@ -281,26 +282,35 @@ class CSVSICOPATExporter extends AbstarctExporter
         //CF_AZIENDA
 
         //CF
-        if ( $columns[0] )
+        if ( !(!isset($columns[0]) || trim($columns[0])===''))
         {
             $cf = $columns[0];
+
+            preg_match("/[A-Za-z]{6}[0-9]{2}[A-Za-z]{1}[0-9]{2}[A-Za-z]{1}[0-9A-Za-z]{3}[A-Za-z]{1}/", $cf, $result_a);
+            preg_match("/[A-Za-z]{6}[0-9LMNPQRSTUV]{2}[A-Za-z]{1}[0-9LMNPQRSTUV]{2}[A-Za-z]{1}[0-9LMNPQRSTUV]{3}[A-Za-z]{1}/", $cf, $result_b);
+            preg_match("/[0-9]{11,11}/", $cf, $result_c);
+
+            //controllo se rispetta almeno uno dei pattern accettati da avcp
+            if ( empty($result_a) && empty($result_b) && empty($result_c)
+            ){
+                $cf = self::$ERRORS_IN_FIELD;
+            }
+
         }
 
         //CF estero
-        else if ( $columns[1] )
+        if ( !(!isset($columns[1]) || trim($columns[1])===''))
         {
             $cf = $columns[1];
         }
 
-        //lunghezza massima 16
-        //sicopat direbbe 11, avcp concede anche 16, per cui metto 16
-        if(!$cf || strlen($cf)>16){
+        //almeno uno dei due cf (estero o italiano) ci deve essere, altrimenti errore
+        if ( !isset($cf) || trim($cf)==='')
+        {
             $cf = self::$ERRORS_IN_FIELD;
-        }else{
-            $cf = $cf;
         }
 
-        $cf = trim($cf);
+        $cf = trim( $cf );
 
         $anagrafiche_inner = array();
 
@@ -330,6 +340,8 @@ class CSVSICOPATExporter extends AbstarctExporter
         //13
         //ruolo (TIPO_PARTECIPAZIONE)
         $tipo_partecipazione = '';
+
+        $id_gruppo = trim($id_gruppo);
 
         //se ci sono più soggetti il tipo partecipazione è obbligatorio
         if($id_gruppo!=''){
@@ -490,7 +502,7 @@ class CSVSICOPATExporter extends AbstarctExporter
                                        'DATA_ULTIMAZIONE' => "Data ultimazione: Formato: GG/MM/AAAA.",
                                        'IMPORTO_SOMME_LIQUIDATE' => "Importo somme liquidate: Sono ammessi solo numeri senza separatori di migliaia e con il punto come separatore di decimali (Max 2 cifre decimali). (es: 1234567.89).",
                                        'FLAG_COMPLETAMENTO' => "",
-                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico è un campo obbligatorio. Massimo 16 caratteri alfanumerici.",
+                                       'CF_AZIENDA' => "Codice fiscale dell'operatore economico o identificativo fiscale estero sono campi obbligatori. Nel caso di operatore economico italiano devono essere rispettati i formati standard",
                                        'ID_GRUPPO' => "",
                                        'TIPO_PARTECIPAZIONE' => "Tipo partecipazione: Sono ammessi 1 carattere numerico tra 1,2,3,4 e 5.",
                                        'ATTRIBUTO_INVITATA' => "",
