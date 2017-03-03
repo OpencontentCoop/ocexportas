@@ -199,7 +199,7 @@ class AVCPExporter extends AbstarctExporter
             $this->xmlWriter->startElement( 'denominazione' );
             if ( $data_map['denominazione_proponente'] )
             {
-                $this->xmlWriter->text( $data_map['denominazione_proponente']->content() );
+                $this->xmlWriter->text( $this->cutIfGreater($data_map['denominazione_proponente']->content(), 230) );
             }
             $this->xmlWriter->endElement();
 
@@ -210,7 +210,7 @@ class AVCPExporter extends AbstarctExporter
             $this->xmlWriter->startElement( 'oggetto' );
             if ( $data_map['oggetto'] )
             {
-                $this->xmlWriter->writeCData( $data_map['oggetto']->content() );
+                $this->xmlWriter->writeCData( $this->cutIfGreater($data_map['oggetto']->content(), 230) );
             }
             $this->xmlWriter->endElement();
 
@@ -295,11 +295,6 @@ class AVCPExporter extends AbstarctExporter
         $data_map = $node->attribute( 'data_map' );
         $matrix = $data_map[$root_node]->content();
 
-        //re non non ci sono elementi non creo il tag
-        if(empty($matrix->Matrix['rows']['sequential'])){
-            return;
-        }
-
         $this->xmlWriter->startElement( $root_node );
 
         $ragg = array();
@@ -322,21 +317,20 @@ class AVCPExporter extends AbstarctExporter
             if ( $columns[0] )
             {
                 $this->xmlWriter->startElement( 'codiceFiscale' );
-                $this->xmlWriter->text( trim($columns[0]) );
+                $this->xmlWriter->text( preg_replace('/\s+/', '', trim($columns[0])) );
                 $this->xmlWriter->endElement();
             }
-            if ( $columns[1] )
+            else if ( $columns[1] )
             {
                 $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                $this->xmlWriter->text( trim($columns[1]) );
+                $this->xmlWriter->text( preg_replace('/\s+/', '', trim($columns[1])) );
                 $this->xmlWriter->endElement();
             }
             //minOccurs="1" xsd:maxLength value="250"
-            //FIXME: limitare a 250, serve dare errore se non è valorizzato perchè a FE è una colonna di una matrice
             $this->xmlWriter->startElement( 'ragioneSociale' );
             if ( $columns[2] )
             {
-                $this->xmlWriter->writeCData( $columns[2] );
+                $this->xmlWriter->writeCData($this->cutIfGreater($columns[2], 230));
             }
             $this->xmlWriter->endElement();
 
@@ -359,13 +353,13 @@ class AVCPExporter extends AbstarctExporter
                 if ( $columns[0] )
                 {
                     $this->xmlWriter->startElement( 'codiceFiscale' );
-                    $this->xmlWriter->text( $columns[0] );
+                    $this->xmlWriter->text(  preg_replace('/\s+/', '', trim($columns[0])) );
                     $this->xmlWriter->endElement();
                 }
-                if ( $columns[1] )
+                else if ( $columns[1] )
                 {
                     $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                    $this->xmlWriter->text( $columns[1] );
+                    $this->xmlWriter->text(  preg_replace('/\s+/', '', trim($columns[1])) );
                     $this->xmlWriter->endElement();
                 }
 
@@ -374,7 +368,7 @@ class AVCPExporter extends AbstarctExporter
                 $this->xmlWriter->startElement( 'ragioneSociale' );
                 if ( $columns[2] )
                 {
-                    $this->xmlWriter->writeCData( $columns[2] );
+                    $this->xmlWriter->writeCData($this->cutIfGreater($columns[2], 230));
                 }
                 $this->xmlWriter->endElement();
 
@@ -393,6 +387,10 @@ class AVCPExporter extends AbstarctExporter
         }
 
         $this->xmlWriter->endElement();
+    }
+
+    function cutIfGreater($string, $size){
+        return strlen($string) > $size ? substr($string, 0, $size) : $string;
     }
 
     function transformNode( eZContentObjectTreeNode $node )
