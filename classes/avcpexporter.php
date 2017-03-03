@@ -292,10 +292,16 @@ class AVCPExporter extends AbstarctExporter
 
     private function createDataFromMatrix($node, $root_node, $child_node){
 
-        $this->xmlWriter->startElement( $root_node );
-
         $data_map = $node->attribute( 'data_map' );
         $matrix = $data_map[$root_node]->content();
+
+        //re non non ci sono elementi non creo il tag
+        if(empty($matrix->Matrix['rows']['sequential'])){
+            return;
+        }
+
+        $this->xmlWriter->startElement( $root_node );
+
         $ragg = array();
 
         foreach ( $matrix->Matrix['rows']['sequential'] as $row )
@@ -316,13 +322,13 @@ class AVCPExporter extends AbstarctExporter
             if ( $columns[0] )
             {
                 $this->xmlWriter->startElement( 'codiceFiscale' );
-                $this->xmlWriter->text( $columns[0] );
+                $this->xmlWriter->text( trim($columns[0]) );
                 $this->xmlWriter->endElement();
             }
             if ( $columns[1] )
             {
                 $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                $this->xmlWriter->text( $columns[1] );
+                $this->xmlWriter->text( trim($columns[1]) );
                 $this->xmlWriter->endElement();
             }
             //minOccurs="1" xsd:maxLength value="250"
