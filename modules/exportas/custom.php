@@ -11,6 +11,10 @@ try {
     $CustomExporter->setUserParameter($UserParameters);
     $CustomExporter->setModule($Module);
 
+    ob_get_clean(); //chiudo l'ob_start dell'index.php
+
+    $CustomExporter->handleDownload();
+
 } catch (InvalidArgumentException $e) {
     eZDebug::writeError($e->getMessage(), __FILE__);
 
@@ -22,9 +26,6 @@ try {
     return $Module->handleError(eZError::KERNEL_ACCESS_DENIED, 'kernel');
 }
 
-ob_get_clean(); //chiudo l'ob_start dell'index.php
-
-$CustomExporter->handleDownload();
 
 eZExecution::cleanExit();
 
