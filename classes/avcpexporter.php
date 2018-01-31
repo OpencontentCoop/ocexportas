@@ -72,9 +72,8 @@ class AVCPExporter extends AbstarctExporter
 
         //nillable="false"
         $this->xmlWriter->startElement( 'dataPubbicazioneDataset' );
-        if($data_map['data_pubbicazione_dataset']){
-            $this->xmlWriter->text(date( 'Y-m-d', $data_map['data_pubbicazione_dataset']->DataInt));
-        }
+        $data_pubbicazione_dataset = $parenObject->attribute('published');
+        $this->xmlWriter->text(date( 'Y-m-d', $data_pubbicazione_dataset));
         $this->xmlWriter->endElement();
 
         //nillable="false"
@@ -86,9 +85,8 @@ class AVCPExporter extends AbstarctExporter
 
         //
         $this->xmlWriter->startElement( 'dataUltimoAggiornamentoDataset' );
-        if($data_map['data_ultimo_aggiornamento_dataset']){
-            $this->xmlWriter->text(date( 'Y-m-d', $data_map['data_ultimo_aggiornamento_dataset']->DataInt));
-        }
+        $data_ultimo_aggiornamento_dataset = $parenObject->attribute('modified');
+        $this->xmlWriter->text(date( 'Y-m-d', $data_ultimo_aggiornamento_dataset));
         $this->xmlWriter->endElement();
 
         //nillable="false
@@ -316,14 +314,16 @@ class AVCPExporter extends AbstarctExporter
             //lunghezza massima 11
             if ( $columns[0] )
             {
+
+
                 $this->xmlWriter->startElement( 'codiceFiscale' );
-                $this->xmlWriter->text( preg_replace('/\s+/', '', trim($columns[0])) );
+                $this->xmlWriter->text($this->fixCF(preg_replace('/\xc2\xa0/','',trim($columns[0]))));
                 $this->xmlWriter->endElement();
             }
             else if ( $columns[1] )
             {
                 $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                $this->xmlWriter->text( preg_replace('/\s+/', '', trim($columns[1])) );
+                $this->xmlWriter->text(preg_replace('/\xc2\xa0/','',trim($columns[1])));
                 $this->xmlWriter->endElement();
             }
             //minOccurs="1" xsd:maxLength value="250"
@@ -353,13 +353,13 @@ class AVCPExporter extends AbstarctExporter
                 if ( $columns[0] )
                 {
                     $this->xmlWriter->startElement( 'codiceFiscale' );
-                    $this->xmlWriter->text(  preg_replace('/\s+/', '', trim($columns[0])) );
+                    $this->xmlWriter->text($this->fixCF(preg_replace('/\xc2\xa0/','',trim($columns[0]))));
                     $this->xmlWriter->endElement();
                 }
                 else if ( $columns[1] )
                 {
                     $this->xmlWriter->startElement( 'identificativoFiscaleEstero' );
-                    $this->xmlWriter->text(  preg_replace('/\s+/', '', trim($columns[1])) );
+                    $this->xmlWriter->text(trim(preg_replace('/\xc2\xa0/','',trim($columns[1]))));
                     $this->xmlWriter->endElement();
                 }
 
@@ -391,6 +391,14 @@ class AVCPExporter extends AbstarctExporter
 
     function cutIfGreater($string, $size){
         return strlen($string) > $size ? substr($string, 0, $size) : $string;
+    }
+
+    function fixCF($string_n){
+
+        if(strlen($string_n) > 11 && strlen($string_n) < 16 && substr( $string_n, 0, 2 ) === "IT"){
+            return substr( $string_n, 2, strlen($string_n) );
+        }
+        return $string_n;
     }
 
     function transformNode( eZContentObjectTreeNode $node )

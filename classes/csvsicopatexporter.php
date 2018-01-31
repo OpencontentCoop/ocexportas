@@ -286,13 +286,14 @@ class CSVSICOPATExporter extends AbstarctExporter
         {
             $cf = $columns[0];
 
-            preg_match("/[A-Za-z]{6}[0-9]{2}[A-Za-z]{1}[0-9]{2}[A-Za-z]{1}[0-9A-Za-z]{3}[A-Za-z]{1}/", $cf, $result_a);
-            preg_match("/[A-Za-z]{6}[0-9LMNPQRSTUV]{2}[A-Za-z]{1}[0-9LMNPQRSTUV]{2}[A-Za-z]{1}[0-9LMNPQRSTUV]{3}[A-Za-z]{1}/", $cf, $result_b);
-            preg_match("/[0-9]{11,11}/", $cf, $result_c);
+            //FIXME: questo codice è sbagliato
+            $result_a = preg_match("/[A-Za-z]{6}[0-9]{2}[A-Za-z]{1}[0-9]{2}[A-Za-z]{1}[0-9A-Za-z]{3}[A-Za-z]{1}/", $cf);
+            $result_b = preg_match("/[A-Za-z]{6}[0-9LMNPQRSTUV]{2}[A-Za-z]{1}[0-9LMNPQRSTUV]{2}[A-Za-z]{1}[0-9LMNPQRSTUV]{3}[A-Za-z]{1}/", $cf);
+            $result_c = preg_match("/[0-9]{11,11}/", $cf);
 
             //controllo se rispetta almeno uno dei pattern accettati da avcp
-            if ( empty($result_a) && empty($result_b) && empty($result_c)
-            ){
+            if (!$result_a && !$result_c && !$result_b)
+            {
                 $cf = self::$ERRORS_IN_FIELD;
             }
 
