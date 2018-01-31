@@ -33,6 +33,12 @@ $ViewList['csvsicopat'] = array(
 );
 
 
+$ViewList['csvsurvey'] = array(
+    'functions' => array( 'csvsurvey' ),
+    'script' => 'csvsurvey.php',
+    'params' => array( 'ContentObjectID', 'ContentClassAttributeID', 'LanguageCode' )
+);
+
 $ClassID = array(
     'name' => 'Class',
     'values' => array(),
@@ -83,3 +89,5 @@ $FunctionList['csvsicopat'] = array(
     'Section' => $SectionID,
     'Node' => $Node
 );
+
+$FunctionList['csvsurvey'] = array();
