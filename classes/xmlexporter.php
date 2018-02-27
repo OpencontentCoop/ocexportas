@@ -124,7 +124,7 @@ class XMLExporter extends AbstarctExporter
                             {
                                 $this->xmlWriter->startElement( $attributeContent->attribute( 'class_identifier' ) );
                             }                            
-                            $this->writeObjectProperties( $object );
+                            $this->writeObjectProperties( $attributeContent );
                             $this->xmlWriter->endElement();
                         }
                         else
@@ -160,7 +160,7 @@ class XMLExporter extends AbstarctExporter
                                     {
                                         $this->xmlWriter->startElement( $related->attribute( 'class_identifier' ) );
                                     }                                      
-                                    $this->writeObjectProperties( $object );
+                                    $this->writeObjectProperties( $related );
                                     $this->xmlWriter->endElement();
                                 }
                                 else
