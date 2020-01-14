@@ -40,7 +40,7 @@ class AVCPExporter extends AbstarctExporter
         <metadata>
             <titolo>Pubblicazione 1 legge 190</titolo>
             <abstract>Pubblicazione 1 legge 190 anno 1 rif. 2010 aggiornamento del 2015-01-28 07:00:30</abstract>
-            <dataPubbicazioneDataset>2015-01-31</dataPubbicazioneDataset>
+            <dataPubblicazioneDataset>2015-01-31</dataPubblicazioneDataset>
             <entePubblicatore>Comune di XXX</entePubblicatore>
             <dataUltimoAggiornamentoDataset>2015-01-28</dataUltimoAggiornamentoDataset>
             <annoRiferimento>2014</annoRiferimento><urlFile>http://www.comune.xxx.brescia.it/trasparenza/avcp_dataset_2014.xml</urlFile>
@@ -71,7 +71,7 @@ class AVCPExporter extends AbstarctExporter
         $this->xmlWriter->endElement();
 
         //nillable="false"
-        $this->xmlWriter->startElement( 'dataPubbicazioneDataset' );
+        $this->xmlWriter->startElement( 'dataPubblicazioneDataset' );
         $data_pubbicazione_dataset = $parenObject->attribute('published');
         $this->xmlWriter->text(date( 'Y-m-d', $data_pubbicazione_dataset));
         $this->xmlWriter->endElement();
