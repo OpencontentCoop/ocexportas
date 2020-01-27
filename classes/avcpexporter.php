@@ -65,9 +65,9 @@ class AVCPExporter extends AbstarctExporter
 
         //
         $this->xmlWriter->startElement('abstract');
-        if ($data_map['abstract']) {
-            //FIXME: trattare come XML
-            $this->xmlWriter->text($data_map['abstract']->content());
+        if ($data_map['abstract']) {            
+            $abstractText = str_replace('&nbsp;', ' ', $data_map['abstract']->content()->attribute('output')->attribute('output_text'));
+            $this->xmlWriter->text($abstractText);
         }
         $this->xmlWriter->endElement();
 
@@ -324,9 +324,13 @@ class AVCPExporter extends AbstarctExporter
 
         //gestione raggruppamenti
         if (!empty($groups)) {
-
+            
+            $groupName = 'raggruppamento';
+            if ($child_node == 'aggiudicatario'){
+                $groupName = 'aggiudicatarioRaggruppamento';
+            }
             foreach ($groups as $id => $group) {
-                $this->xmlWriter->startElement('raggruppamento');
+                $this->xmlWriter->startElement($groupName);
 
                 foreach ($group as $row) {
                     $columns = $row['columns'];
@@ -382,9 +386,8 @@ class AVCPExporter extends AbstarctExporter
 
                     $this->xmlWriter->endElement();
                 }
-            }
-
-            $this->xmlWriter->endElement();
+                $this->xmlWriter->endElement();
+            }            
         }
 
         $this->xmlWriter->endElement();
