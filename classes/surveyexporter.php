@@ -184,7 +184,7 @@ class SurveyExporter
         return array($text);
     }
 
-    private function getExpandedQuestionList()
+    public function getExpandedQuestionList()
     {
         $this->getIndexList();
         $questions = $this->getQuestionList();
@@ -205,7 +205,7 @@ class SurveyExporter
         return $formattedQuestions;
     }
 
-    private function getExpandedAnswerList()
+    public function getExpandedAnswerList()
     {
         $this->getIndexList();
         $answers = $this->getAnswerList();
