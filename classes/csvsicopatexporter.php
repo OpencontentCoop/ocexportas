@@ -264,12 +264,14 @@ class CSVSICOPATExporter extends AbstarctExporter
         }
 
         //gestione eventuali errori
+        // @phpstan-ignore variable.undefined
         $this->manageErrors($values, $object);
 
         $object->resetDataMap();
         eZContentObject::clearCache($object->attribute( 'id' ));
         unset( $data_map );
 
+        // @phpstan-ignore variable.undefined
         return $values;
     }
 

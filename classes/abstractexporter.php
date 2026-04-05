@@ -100,6 +100,7 @@ abstract class AbstarctExporter
         $this->setParentNode( $parentNodeID );
         $this->setFetchParameters();
 
+        // @phpstan-ignore arguments.count
         $checkAccess = $this->checkAccess( $this->functionName );
         if (  $checkAccess !== true )
         {
@@ -330,6 +331,7 @@ abstract class AbstarctExporter
             {
                 return array( 'FunctionRequired' => array ( 'Module' => 'exportas',
                                                             'Function' => $this->functionName  ),
+                              // @phpstan-ignore variable.undefined
                               'PolicyList' => $policyList );
             }
             else

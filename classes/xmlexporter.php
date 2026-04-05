@@ -130,6 +130,7 @@ class XMLExporter extends AbstarctExporter
                         else
                         {
                             self::$recursion++;
+                            // @phpstan-ignore variable.undefined
                             $this->transformObject( $related );
                             self::$recursion--;
                         }

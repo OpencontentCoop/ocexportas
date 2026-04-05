@@ -35,11 +35,13 @@ class SurveyExporter
         $this->contentClassAttributeID = (int)$contentClassAttributeID;
         $this->languageCode = $languageCode;
 
+        // @phpstan-ignore class.notFound
         $this->survey = eZSurvey::fetchByObjectInfo($this->contentObjectID, $this->contentClassAttributeID,
             $this->languageCode);
         $this->surveyINI = eZINI::instance('ezsurvey.ini');
 
         /** @var eZSurveyQuestion[] $questionList */
+        // @phpstan-ignore class.notFound
         $this->questionList = $this->survey instanceof eZSurvey ? $this->survey->fetchQuestionList() : array();
 
         $this->options = eZINI::instance('exportas.ini')->group('Settings');
@@ -237,6 +239,7 @@ class SurveyExporter
 
     public function canExport()
     {
+        // @phpstan-ignore class.notFound
         if (!$this->survey instanceof eZSurvey || !$this->survey->published()) {
             return false;
         }
